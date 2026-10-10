@@ -981,7 +981,7 @@ function openCfg(){
   openModal(`<h2 style="margin:0 0 8px">Configurar</h2>
   <p class="hint">A URL e a senha ficam salvas apenas neste navegador (não vão para o GitHub).</p>
   <div style="display:grid;gap:10px">
-   <label class="fld">URL do Web App (termina em /exec)<input type="text" id="cfUrl" value="${esc(CFG.url)}" placeholder="https://script.google.com/macros/s/AKfycbzxDE7DVuEE13szh-Vvk6BhVoeMkg8nfGfY-fkMGR7Q2WIbBUgV0pwPabNW7aFEggQJNQ/exec"></label>
+   <label class="fld">URL do Web App (termina em /exec)<input type="text" id="cfUrl" value="${esc(CFG.url)}" placeholder="https://script.google.com/macros/s/.../exec"></label>
    <label class="fld">Senha (token)<input type="password" id="cfTok" value="${esc(CFG.token)}"></label>
    <label class="fld">Limite de dias para considerar “parado” na oficina<input type="number" id="cfLim" min="1" value="${CFG.limite}"></label>
    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cfDemo" ${CFG.demo?'checked':''}> Forçar modo demonstração (dados fictícios)</label>

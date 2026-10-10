@@ -44,6 +44,7 @@ details.ms .n{color:var(--brand)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:6px}
 .chip{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 10px;font-size:12px;display:flex;gap:6px;align-items:center}
 .chip button{border:none;background:var(--line);border-radius:50%;width:18px;height:18px;cursor:pointer;line-height:1;padding:0}
+.rule{font-size:11px;color:var(--mut);padding:0 0 6px}
 nav#tabs{display:flex;gap:2px;overflow-x:auto;border-top:1px solid var(--line)}
 nav#tabs button{background:none;border:none;padding:10px 14px;cursor:pointer;color:var(--mut);border-bottom:3px solid transparent;white-space:nowrap;font-weight:600}
 nav#tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
@@ -69,7 +70,6 @@ main{max-width:1500px;margin:0 auto;padding:14px}
 .ins-list li{border-radius:10px;padding:9px 12px;border:1px solid var(--line);background:var(--soft);border-left:4px solid var(--brand)}
 .ins-list li.warn{border-left-color:var(--warn)}.ins-list li.bad{border-left-color:var(--bad)}.ins-list li.ok{border-left-color:var(--ok)}
 .ins-list li b{display:block;font-size:13px}
-.seg{display:inline-flex;gap:0}
 .tw{overflow:auto;border:1px solid var(--line);border-radius:10px}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -77,7 +77,7 @@ th{background:var(--soft);cursor:pointer;position:sticky;top:0;font-size:12px;co
 th.asc::after{content:" ▲"}th.desc::after{content:" ▼"}
 td.num,th.num{text-align:right}
 tr.click{cursor:pointer}tr.click:hover td{background:var(--soft)}
-tr.sel td{background:rgba(37,99,235,.1)}
+tr.sel td{background:rgba(37,99,235,.12)}
 td.empty{text-align:center;color:var(--mut);padding:18px}
 .clip{max-width:340px;overflow:hidden;text-overflow:ellipsis}
 .tb-tools{display:flex;gap:8px;align-items:center;margin-bottom:8px}
@@ -85,9 +85,14 @@ td.empty{text-align:center;color:var(--mut);padding:18px}
 .tb-count{color:var(--mut);font-size:12px;flex:1}
 .tb-pager{display:flex;gap:10px;align-items:center;justify-content:center;padding-top:8px;color:var(--mut);font-size:12px}
 .bd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;color:#fff;background:var(--warn)}
-.bd.CONCLUIDO{background:var(--ok)}.bd.EXTERNA{background:var(--ext)}.bd.SUCATA{background:var(--scrap)}
+.bd.CONCLUIDO{background:var(--ok)}.bd.EXTERNA{background:var(--ext)}.bd.SUCATA{background:var(--scrap)}.bd.CANCELADO{background:var(--bad)}
 .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;background:var(--soft);border:1px solid var(--line)}
 .pill.late{background:#fde8e8;color:#9b1c1c;border-color:#f5b5b5}.pill.ok{background:#e3f6e8;color:#14702f;border-color:#b6e2c2}
+.bar-prog{display:inline-block;width:70px;height:8px;background:var(--line);border-radius:4px;vertical-align:middle;margin-right:6px;overflow:hidden}
+.bar-prog i{display:block;height:100%;background:var(--ok)}
+.heat{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.heat table td{min-width:34px;text-align:center;padding:4px 6px;font-size:12px;border-bottom:1px solid var(--card)}
+.heat table td:first-child,.heat table th:first-child{text-align:left;position:sticky;left:0;background:var(--card);z-index:1;font-weight:600;min-width:190px}
 .search-big{display:flex;gap:8px;margin-bottom:10px}
 .search-big input{flex:1;font-size:16px;padding:10px 12px}
 .eqcard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;background:var(--card)}
@@ -106,7 +111,6 @@ td.empty{text-align:center;color:var(--mut);padding:18px}
 .kv div small{display:block;color:var(--mut);font-size:11px}
 .txt{white-space:pre-wrap;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;margin:6px 0}
 footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
-.note{font-size:12px;color:var(--mut);background:var(--soft);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-top:12px}
 @media print{header .bar,header .chips,nav#tabs,.btn,.tb-tools,.tb-pager{display:none!important}header{position:static}}
 </style>
 </head>
@@ -128,31 +132,45 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
    </div>
    <label class="fld">De<input type="date" id="dFrom"></label>
    <label class="fld">Até<input type="date" id="dTo"></label>
-   <label class="fld">Período considera
-    <select id="selRef"><option value="ini">Início da manutenção</option><option value="fim">Fim da manutenção</option><option value="ab">Abertura da OS</option></select></label>
    <label class="fld">Agrupar gráficos
     <select id="selGran"><option value="auto">Automático</option><option value="day">Dia</option><option value="week">Semana</option><option value="month">Mês</option></select></label>
   </div>
   <div class="bar" id="msels"></div>
   <div class="chips" id="chips"></div>
+  <div class="rule">Como o período é contado: produção e desempenho pela <b>data de fim da manutenção</b> (quando o equipamento sai da oficina) · entradas pela <b>data da OS</b> · quadro de OS pela <b>data de abertura</b>.</div>
  </div>
  <div class="wrap"><nav id="tabs">
-  <button data-t="geral">Visão geral</button><button data-t="oficina">Oficina agora</button><button data-t="equipe">Equipe</button><button data-t="equip">Equipamentos</button><button data-t="custos">Custos</button><button data-t="os">Ordens de serviço</button><button data-t="consulta">Consultar patrimônio / PDF</button><button data-t="dados">Dados e qualidade</button>
+  <button data-t="equipe">Desempenho da equipe</button><button data-t="geral">Visão geral</button><button data-t="oficina">Oficina agora</button><button data-t="equip">Equipamentos</button><button data-t="custos">Custos</button><button data-t="os">Ordens de serviço</button><button data-t="consulta">Consultar patrimônio / PDF</button><button data-t="dados">Dados e qualidade</button>
  </nav></div>
 </header>
 
 <main>
+<!-- EQUIPE -->
+<section class="tab" id="t-equipe">
+ <div class="kpis" id="kEquipe"></div>
+ <div class="grid">
+  <div class="card c12"><h3>Ranking de colaboradores <small>clique no nome para filtrar todo o painel — pode marcar vários</small></h3><div id="tbEquipe"></div></div>
+  <div class="card c6"><h3>Equipamentos por colaborador e destino <small>no período</small></h3><div class="cv tall"><canvas id="cEqResp"></canvas></div></div>
+  <div class="card c6"><h3>Evolução das conclusões <small>principais colaboradores</small></h3><div class="cv tall"><canvas id="cEqEvol"></canvas></div></div>
+  <div class="card c12"><h3>Mapa de produção <small>conclusões por colaborador em cada período — quanto mais escuro, mais equipamentos</small></h3><div class="heat" id="heatBox"></div></div>
+  <div class="card c4"><h3>Média por dia útil</h3><div class="cv"><canvas id="cEqPdu"></canvas></div></div>
+  <div class="card c4"><h3>Participação nas conclusões</h3><div class="cv"><canvas id="cEqShare"></canvas></div></div>
+  <div class="card c4"><h3>Carga atual <small>itens em andamento por colaborador</small></h3><div class="cv"><canvas id="cEqCarga"></canvas></div></div>
+  <div class="card c12"><h3 id="eqDetTitulo">Equipamentos dos colaboradores selecionados</h3><div id="eqDetHint" class="hint">Marque um ou mais colaboradores (na tabela acima ou no filtro “Responsável”) para ver aqui cada equipamento que concluíram no período.</div><div id="tbEqDet"></div></div>
+ </div>
+</section>
+
 <!-- VISÃO GERAL -->
 <section class="tab" id="t-geral">
  <div class="kpis" id="kGeral"></div>
  <div class="grid">
   <div class="card c12"><h3>Radar do gestor <small>alertas automáticos — não dependem do período selecionado</small></h3><ul class="ins-list" id="insights"></ul></div>
-  <div class="card c8"><h3>Entradas × saídas da oficina e estoque <small>mostra se a oficina está esvaziando porque entra menos ou porque sai mais</small></h3><div class="cv tall"><canvas id="cFlow"></canvas></div></div>
+  <div class="card c8"><h3>Entradas × saídas da oficina e estoque <small>mostra se a oficina esvazia porque entra menos ou porque sai mais</small></h3><div class="cv tall"><canvas id="cFlow"></canvas></div></div>
   <div class="card c4"><h3>Destino dos equipamentos <small>clique para filtrar</small></h3><div class="cv tall"><canvas id="cStatus"></canvas></div></div>
-  <div class="card c4"><h3>Produção por setor <small>clique para filtrar</small></h3><div class="cv"><canvas id="cSetor"></canvas></div></div>
-  <div class="card c4"><h3>Produção por responsável <small>top 10 — clique para filtrar</small></h3><div class="cv"><canvas id="cResp"></canvas></div></div>
+  <div class="card c4"><h3>Saídas por setor <small>clique para filtrar</small></h3><div class="cv"><canvas id="cSetor"></canvas></div></div>
+  <div class="card c4"><h3>Saídas por colaborador <small>top 10 — clique para filtrar</small></h3><div class="cv"><canvas id="cResp"></canvas></div></div>
   <div class="card c4"><h3>Custo em peças no tempo</h3><div class="cv"><canvas id="cCusto"></canvas></div></div>
-  <div class="card c6"><h3>Tempo médio de reparo (dias) <small>equipamentos concluídos, por data de conclusão</small></h3><div class="cv short"><canvas id="cTmr"></canvas></div></div>
+  <div class="card c6"><h3>Destino ao longo do tempo</h3><div class="cv short"><canvas id="cDestTempo"></canvas></div></div>
   <div class="card c6"><h3>Conclusões por dia da semana</h3><div class="cv short"><canvas id="cDow"></canvas></div></div>
  </div>
 </section>
@@ -164,21 +182,8 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
   <div class="card c8"><h3>Saldo por período <small>entradas − saídas: vermelho = estoque crescendo, verde = oficina esvaziando</small></h3><div class="cv"><canvas id="cSaldo"></canvas></div></div>
   <div class="card c4"><h3>Situação dos que estão na oficina</h3><div class="cv"><canvas id="cAbStatus"></canvas></div></div>
   <div class="card c6"><h3>Estoque na oficina por setor</h3><div class="cv"><canvas id="cEstSetor"></canvas></div></div>
-  <div class="card c6"><h3>Tempo parado na oficina <small>faixas de dias, por setor</small></h3><div class="cv"><canvas id="cIdade"></canvas></div></div>
-  <div class="card c12"><h3>Equipamentos na oficina agora <small>ordenados do mais antigo — clique na linha para detalhes</small></h3><div id="tbOficina"></div></div>
- </div>
-</section>
-
-<!-- EQUIPE -->
-<section class="tab" id="t-equipe">
- <div class="kpis" id="kEquipe"></div>
- <div class="grid">
-  <div class="card c12"><h3>Desempenho por responsável <small>clique no nome para filtrar todo o painel (vários nomes podem ser marcados)</small></h3><div id="tbEquipe"></div></div>
-  <div class="card c6"><h3>Equipamentos por responsável e destino</h3><div class="cv tall"><canvas id="cEqResp"></canvas></div></div>
-  <div class="card c6"><h3>Evolução das saídas — principais responsáveis</h3><div class="cv tall"><canvas id="cEqEvol"></canvas></div></div>
-  <div class="card c6"><h3>Tempo médio de reparo por responsável (dias)</h3><div class="cv"><canvas id="cEqTmr"></canvas></div></div>
-  <div class="card c6"><h3>Custo em peças por responsável</h3><div class="cv"><canvas id="cEqCusto"></canvas></div></div>
-  <div class="card c12"><h3 id="eqDetTitulo">Equipamentos dos responsáveis selecionados</h3><div id="eqDetHint" class="hint">Selecione um ou mais responsáveis (tabela acima ou filtro no topo) para ver aqui cada equipamento que fizeram no período.</div><div id="tbEqDet"></div></div>
+  <div class="card c6"><h3>Tempo na oficina <small>faixas de dias desde a entrada, por setor</small></h3><div class="cv"><canvas id="cIdade"></canvas></div></div>
+  <div class="card c12"><h3>Equipamentos na oficina agora <small>do mais antigo ao mais novo — clique na linha para detalhes</small></h3><div id="tbOficina"></div></div>
  </div>
 </section>
 
@@ -188,9 +193,9 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
  <div class="grid">
   <div class="card c7"><h3>Pareto por tipo de equipamento <small>clique para filtrar</small></h3><div class="cv tall"><canvas id="cPareto"></canvas></div></div>
   <div class="card c5"><h3>Destino por tipo (%)</h3><div class="cv tall"><canvas id="cDestTipo"></canvas></div></div>
-  <div class="card c6"><h3>Mais reincidentes <small>patrimônios com mais manutenções no período</small></h3><div class="cv"><canvas id="cReinc"></canvas></div></div>
-  <div class="card c6"><h3>Tempo médio de reparo por tipo (dias)</h3><div class="cv"><canvas id="cTmrTipo"></canvas></div></div>
-  <div class="card c12"><h3>Equipamentos no período <small>agrupados por patrimônio</small></h3><div id="tbEquip"></div></div>
+  <div class="card c6"><h3>Mais reincidentes <small>patrimônios com mais passagens no período</small></h3><div class="cv"><canvas id="cReinc"></canvas></div></div>
+  <div class="card c6"><h3>Equipamentos por obra <small>clique para filtrar</small></h3><div class="cv"><canvas id="cEqObra"></canvas></div></div>
+  <div class="card c12"><h3>Equipamentos no período <small>agrupados por patrimônio — clique para ver o histórico</small></h3><div id="tbEquip"></div></div>
  </div>
 </section>
 
@@ -200,10 +205,10 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
  <div class="grid">
   <div class="card c8"><h3>Custo por período e acumulado</h3><div class="cv tall"><canvas id="cCustoTempo"></canvas></div></div>
   <div class="card c4"><h3>Custo por setor <small>clique para filtrar</small></h3><div class="cv tall"><canvas id="cCustoSetor"></canvas></div></div>
-  <div class="card c6"><h3>Custo por responsável</h3><div class="cv"><canvas id="cCustoResp"></canvas></div></div>
+  <div class="card c6"><h3>Custo por colaborador</h3><div class="cv"><canvas id="cCustoResp"></canvas></div></div>
   <div class="card c6"><h3>Custo por tipo de equipamento</h3><div class="cv"><canvas id="cCustoTipo"></canvas></div></div>
   <div class="card c6"><h3>Custo por obra</h3><div class="cv"><canvas id="cCustoObra"></canvas></div></div>
-  <div class="card c6"><h3>Distribuição dos valores gastos <small>quantidade de equipamentos por faixa</small></h3><div class="cv"><canvas id="cCustoFaixa"></canvas></div></div>
+  <div class="card c6"><h3>Distribuição dos valores gastos <small>equipamentos por faixa de valor</small></h3><div class="cv"><canvas id="cCustoFaixa"></canvas></div></div>
   <div class="card c12"><h3>Maiores gastos individuais</h3><div id="tbCaros"></div></div>
  </div>
 </section>
@@ -212,15 +217,15 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
 <section class="tab" id="t-os">
  <div class="kpis" id="kOs"></div>
  <div class="grid">
-  <div class="card c8"><h3>OS abertas × fechadas</h3><div class="cv"><canvas id="cOsFluxo"></canvas></div></div>
-  <div class="card c4"><h3>Cumprimento do prazo (data de previsão)</h3><div class="cv"><canvas id="cOsPrazo"></canvas></div></div>
+  <div class="card c8"><h3>OS abertas × liberadas</h3><div class="cv"><canvas id="cOsFluxo"></canvas></div></div>
+  <div class="card c4"><h3>Cumprimento do prazo <small>data de previsão</small></h3><div class="cv"><canvas id="cOsPrazo"></canvas></div></div>
   <div class="card c4"><h3>OS por prioridade <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsPrio"></canvas></div></div>
-  <div class="card c4"><h3>Tempo médio por prioridade (dias)</h3><div class="cv"><canvas id="cOsLead"></canvas></div></div>
-  <div class="card c4"><h3>Status das OS</h3><div class="cv"><canvas id="cOsStatus"></canvas></div></div>
-  <div class="card c4"><h3>Principais solicitantes <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsSol"></canvas></div></div>
+  <div class="card c4"><h3>Situação das OS</h3><div class="cv"><canvas id="cOsStatus"></canvas></div></div>
+  <div class="card c4"><h3>OS por setor <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsSetor"></canvas></div></div>
+  <div class="card c4"><h3>OS por solicitante <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsSol"></canvas></div></div>
   <div class="card c4"><h3>OS por obra <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsObra"></canvas></div></div>
-  <div class="card c4"><h3>Manutenção interna × externa</h3><div class="cv"><canvas id="cOsMan"></canvas></div></div>
-  <div class="card c12"><h3>Ordens de serviço no período <small>por data de abertura — clique na linha para ver os equipamentos</small></h3><div id="tbOs"></div></div>
+  <div class="card c4"><h3>Interna × retorno de obra <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsMan"></canvas></div></div>
+  <div class="card c12"><h3>Ordens de serviço abertas no período <small>clique na linha para ver os equipamentos</small></h3><div id="tbOs"></div></div>
  </div>
 </section>
 
@@ -229,7 +234,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
  <div class="card">
   <h3>Consultar equipamento e abrir o PDF do formulário</h3>
   <p class="hint">Digite o patrimônio (ou parte dele), a descrição, o número da OS ou um trecho da atividade. A busca ignora os filtros do topo e olha todo o histórico.</p>
-  <div class="search-big"><input type="search" id="qBusca" placeholder="Ex.: 10217-0250"><button class="btn" id="qLimpa">Limpar</button></div>
+  <div class="search-big"><input type="search" id="qBusca" placeholder="Ex.: 10334-0756"><button class="btn" id="qLimpa">Limpar</button></div>
   <div id="qRes"></div>
  </div>
 </section>
@@ -238,12 +243,12 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
 <section class="tab" id="t-dados">
  <div class="grid" style="margin-top:0">
   <div class="card c12"><h3>Qualidade dos dados <small>inconsistências na planilha que distorcem os indicadores — clique para listar</small></h3><div class="qgrid" id="qCards"></div><div id="tbQual"></div></div>
-  <div class="card c12"><h3>Todos os equipamentos do período <small>use "⬇ CSV" para abrir no Excel</small></h3><div id="tbDados"></div></div>
+  <div class="card c12"><h3>Equipamentos do período <small>entradas ou saídas dentro do período — use "⬇ CSV" para abrir no Excel</small></h3><div id="tbDados"></div></div>
  </div>
 </section>
 </main>
 
-<footer id="foot">Dados lidos da planilha via Apps Script. Fim de manutenção usa a data da OS quando o item não tem data própria.</footer>
+<footer id="foot"></footer>
 
 <div id="modal"><div class="box" id="modalBox"></div></div>
 
@@ -257,7 +262,7 @@ const ad=(t,n)=>{const d=new Date(t);return new Date(d.getFullYear(),d.getMonth(
 const today0=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();};
 const dd=(a,b)=>Math.round((a-b)/DAY);
 const toISO=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
-const N=s=>String(s==null?'':s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+const N=s=>String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim();
 const S0=v=>v==null?'':String(v).trim();
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const brl=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -286,26 +291,32 @@ function pnum(v){
   if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
   const n=parseFloat(s);return isNaN(n)?0:n;
 }
-const CLS={CONCLUIDO:{n:'Concluído',c:'#16a34a'},EXTERNA:{n:'Manutenção externa',c:'#7c3aed'},SUCATA:{n:'Sucata',c:'#64748b'},ABERTO:{n:'Em oficina',c:'#f59e0b'}};
-const CLS_ORDER=['CONCLUIDO','EXTERNA','SUCATA','ABERTO'];
+const NA='NÃO ATRIBUÍDO';
+const CLS={CONCLUIDO:{n:'Concluído',c:'#16a34a'},EXTERNA:{n:'Manutenção externa',c:'#7c3aed'},SUCATA:{n:'Sucata',c:'#64748b'},CANCELADO:{n:'Cancelado',c:'#dc2626'},ABERTO:{n:'Em oficina',c:'#f59e0b'}};
+const EXIT_ORDER=['CONCLUIDO','EXTERNA','SUCATA','CANCELADO'];
+const CLS_ORDER=EXIT_ORDER.concat(['ABERTO']);
 const PAL=['#2563eb','#16a34a','#f59e0b','#dc2626','#7c3aed','#0891b2','#db2777','#65a30d','#ea580c','#4f46e5','#0d9488','#a16207'];
+const ST_OPEN_COLOR={'NÃO INICIADO':'#94a3b8','EM MANUTENÇÃO':'#2563eb','PAUSADO':'#f59e0b','AGUARDANDO PEÇA':'#ea580c'};
 function classe(st){
   const s=N(st);
+  if(s.includes('CANCEL'))return 'CANCELADO';
   if(s.includes('SUCATA'))return 'SUCATA';
   if(s.includes('EXTERN'))return 'EXTERNA';
   if(s.includes('CONCLU')||s.includes('FINALIZ')||s.includes('ENTREGUE'))return 'CONCLUIDO';
   return 'ABERTO';
 }
+const isLib=o=>N(o.status).includes('LIBERAD');
+const emAndamento=i=>i.cls==='ABERTO'&&N(i.status)!=='NAO INICIADO';
 function tipoDe(d){const w=N(d).replace(/[^A-Z0-9 ]/g,' ').trim().split(/\s+/)[0];return w||'OUTROS';}
 
 /* ====================== configuração e estado ====================== */
 const CFG={url:LS.get('mp_url',''),token:LS.get('mp_token',''),limite:+LS.get('mp_limite',15)||15,demo:LS.get('mp_demo','')==='1'};
 const mkSets=()=>({setor:new Set(),resp:new Set(),cls:new Set(),tipo:new Set(),obra:new Set(),prio:new Set(),man:new Set(),sol:new Set()});
-const F=Object.assign(mkSets(),{from:null,to:null,preset:'90',ref:'ini',gran:'auto'});
+const F=Object.assign(mkSets(),{from:null,to:null,preset:'30',gran:'auto'});
 const KEYS={setor:i=>i.setor,resp:i=>i.resp,cls:i=>i.cls,tipo:i=>i.tipo,prio:i=>i.os.prio,man:i=>i.os.man,sol:i=>i.os.sol,obra:i=>i.os.obra};
 const OKEYS={prio:o=>o.prio,man:o=>o.man,sol:o=>o.sol,obra:o=>o.obra};
-const MSDEF=[['setor','Setor'],['resp','Responsável'],['cls','Status'],['tipo','Tipo de equipamento'],['obra','Obra'],['prio','Prioridade da OS'],['man','Manutenção'],['sol','Solicitante']];
-let DATA=null,S={},memo={},activeTab='geral',SRC={demo:true,when:null,err:''};
+const MSDEF=[['resp','Responsável'],['setor','Setor'],['cls','Destino / status'],['tipo','Tipo de equipamento'],['obra','Obra'],['prio','Prioridade da OS'],['man','Manutenção'],['sol','Solicitante']];
+let DATA=null,S={},memo={},activeTab='equipe',SRC={demo:true,when:null,err:''};
 
 /* ====================== dados ====================== */
 function build(raw){
@@ -320,47 +331,52 @@ function build(raw){
   });
   const osMap=new Map(osList.map(o=>[o.id,o]));
   const hoje=today0();
-  const Q={fimAntes:[],iniAntesOS:[],abertoComFim:[],finalSemFim:[],semResp:[],semLink:[],osAusente:[],futura:[],semData:[]};
+  const Q={fimAntes:[],iniAntesOS:[],abertoComFim:[],finalSemFim:[],concSemResp:[],andSemResp:[],semLink:[],osAusente:[],futura:[],osLibPend:[],osFinalNaoLib:[]};
   const items=[];
   (raw.itens||[]).forEach(r=>{
     const osId=S0(r.ID_OS_REF);
     let os=osMap.get(osId),orfao=false;
     if(!os){orfao=true;os={id:osId,ab:null,rec:null,fech:null,man:'—',sol:'—',desc:'',prio:'—',status:'—',setor:'—',custo:0,prev:null,obra:'SEM OBRA',stub:true};}
-    const st=S0(r.STATUS).toUpperCase()||'—';
+    const st=S0(r.STATUS).toUpperCase()||'NÃO INICIADO';
     const cls=classe(st);
-    let ini=pdate(r.DATA_INICIO_MANUTENCAO);const fim=pdate(r.DATA_FIM_MANUTENCAO);
-    const iniOrig=ini;
-    if(ini==null)ini=(os.rec!=null?os.rec:os.ab);
-    let fimEf=null;
-    if(cls!=='ABERTO')fimEf=fim!=null?fim:(os.fech!=null?os.fech:ini);
+    const ini=pdate(r.DATA_INICIO_MANUTENCAO),fim=pdate(r.DATA_FIM_MANUTENCAO);
+    const ent=os.rec!=null?os.rec:(os.ab!=null?os.ab:ini);
+    const fimEf=cls!=='ABERTO'?(fim!=null?fim:(os.fech!=null?os.fech:(ini!=null?ini:ent))):null;
     const desc=S0(r.DESCRICAO_MATERIAL);
     const it={id:S0(r.ID_ITEM_OS),osId,os,pat:S0(r.PATRIMONIO_REF),desc,tipo:tipoDe(desc),status:st,cls,
-      resp:S0(r.RESPONSAVEL).toUpperCase()||'(SEM RESPONSÁVEL)',setor:S0(r.SETOR).toUpperCase()||os.setor||'—',
-      ini,fim,fimEf,ativ:S0(r.DESCRICAO_ATIVIDADE),valor:pnum(r.VALOR_GASTO),
+      resp:S0(r.RESPONSAVEL).toUpperCase()||NA,setor:S0(r.SETOR).toUpperCase()||os.setor||'—',
+      ent,ini,fim,fimEf,ativ:S0(r.DESCRICAO_ATIVIDADE),valor:pnum(r.VALOR_GASTO),
       gerado:r.RELATORIO_GERADO===true||/^(true|sim|yes|1|x)$/i.test(S0(r.RELATORIO_GERADO)),link:safeUrl(S0(r.LINK_DO_RELATORIO))};
-    it.dias=(fimEf!=null&&ini!=null)?Math.max(0,dd(fimEf,ini)):null;
     items.push(it);
     if(orfao)Q.osAusente.push(it);
-    if(iniOrig==null)Q.semData.push(it);
-    if(fim!=null&&iniOrig!=null&&fim<iniOrig)Q.fimAntes.push(it);
-    if(iniOrig!=null&&os.ab!=null&&iniOrig<os.ab)Q.iniAntesOS.push(it);
+    if(fim!=null&&ini!=null&&fim<ini)Q.fimAntes.push(it);
+    if(ini!=null&&ent!=null&&ini<ent)Q.iniAntesOS.push(it);
     if(cls==='ABERTO'&&fim!=null)Q.abertoComFim.push(it);
     if(cls!=='ABERTO'&&fim==null)Q.finalSemFim.push(it);
-    if(it.resp==='(SEM RESPONSÁVEL)')Q.semResp.push(it);
-    if(cls!=='ABERTO'&&!it.link)Q.semLink.push(it);
-    if((iniOrig!=null&&iniOrig>ad(hoje,1))||(fim!=null&&fim>ad(hoje,1)))Q.futura.push(it);
+    if(cls==='CONCLUIDO'&&it.resp===NA)Q.concSemResp.push(it);
+    if(emAndamento(it)&&it.resp===NA)Q.andSemResp.push(it);
+    if(cls==='CONCLUIDO'&&!it.link)Q.semLink.push(it);
+    if((ini!=null&&ini>ad(hoje,1))||(fim!=null&&fim>ad(hoje,1)))Q.futura.push(it);
   });
   const byOs=new Map(),byPat=new Map();
   items.forEach(i=>{(byOs.get(i.osId)||byOs.set(i.osId,[]).get(i.osId)).push(i);(byPat.get(i.pat)||byPat.set(i.pat,[]).get(i.pat)).push(i);});
-  const ds=[];items.forEach(i=>{if(i.ini!=null)ds.push(i.ini);if(i.fimEf!=null)ds.push(i.fimEf);});osList.forEach(o=>{if(o.ab!=null)ds.push(o.ab);if(o.fech!=null)ds.push(o.fech);});
+  osList.forEach(o=>{
+    const its=byOs.get(o.id)||[];if(!its.length)return;
+    const abertos=its.filter(i=>i.cls==='ABERTO');
+    if(isLib(o)&&abertos.length)abertos.forEach(i=>Q.osLibPend.push(i));
+    if(!isLib(o)&&!abertos.length)its.forEach(i=>Q.osFinalNaoLib.push(i));
+  });
+  const ds=[];items.forEach(i=>{if(i.ent!=null)ds.push(i.ent);if(i.fimEf!=null)ds.push(i.fimEf);});osList.forEach(o=>{if(o.ab!=null)ds.push(o.ab);});
   const quality=[
+    ['concSemResp','Concluído sem responsável','Entrega que não entra no desempenho de ninguém.'],
+    ['andSemResp','Em andamento sem responsável','Status em manutenção/pausado/aguardando peça, sem responsável.'],
+    ['osFinalNaoLib','OS com tudo finalizado mas não liberada','Todos os equipamentos já saíram, mas a OS não está “OS LIBERADA”.'],
+    ['osLibPend','OS liberada com equipamento ainda aberto','A OS está liberada, porém há equipamento sem destino final.'],
+    ['finalSemFim','Saiu da oficina sem data de fim','Concluído/sucata/externo/cancelado sem DATA_FIM (o painel usa a data da OS).'],
+    ['abertoComFim','Ainda na oficina mas com data de fim','Status em aberto, porém há data de fim preenchida.'],
     ['fimAntes','Fim antes do início','Data de fim anterior à data de início da manutenção.'],
-    ['iniAntesOS','Início antes da abertura da OS','Manutenção começou antes de a OS existir (distorce o tempo de reparo).'],
-    ['abertoComFim','Em oficina mas com data de fim','Status ainda em aberto, porém há data de fim preenchida.'],
-    ['finalSemFim','Saiu da oficina sem data de fim','Concluído/sucata/externo sem data de fim (o painel usa a data da OS).'],
-    ['semData','Sem data de início','Início ausente (o painel usa recebimento/abertura da OS).'],
-    ['semLink','Finalizado sem link de relatório','Não há link de PDF para abrir.'],
-    ['semResp','Sem responsável','Item sem responsável definido.'],
+    ['iniAntesOS','Início antes da entrada da OS','Manutenção começou antes da data da OS.'],
+    ['semLink','Concluído sem link de relatório','Não há PDF para abrir.'],
     ['osAusente','OS não encontrada','ID_OS_REF não existe na aba ORDENS_SERVICO.'],
     ['futura','Data no futuro','Datas posteriores a amanhã.']
   ].map(([k,t,d])=>({k,t,d,items:Q[k]}));
@@ -371,61 +387,70 @@ function build(raw){
 function genDemo(){
   let s=20261009;const rnd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
   const pick=a=>a[Math.floor(rnd()*a.length)];
-  const pois=l=>{let k=0,p=Math.exp(-l),c=p,u=rnd();while(u>c&&k<20){k++;p*=l/k;c+=p;}return k;};
-  const team={'MECÂNICA':['DIEGO SOARES','JOÃO GUILHERME C. S. NUNES','RAFAEL SILVA PEREIRA','THIAGO MENDES LIMA'],'ELÉTRICA':['GUSTAVO HENRIQUE ÁVILA','MARCOS VINÍCIUS ROCHA','LEANDRO ALVES COSTA']};
+  const pois=l=>{let k=0,p=Math.exp(-l),c=p,u=rnd();while(u>c&&k<25){k++;p*=l/k;c+=p;}return k;};
+  const wteam=(names,w)=>{const a=[];names.forEach((n,i)=>{for(let k=0;k<w[i];k++)a.push(n);});return a;};
+  const team={'MECÂNICA':wteam(['DIEGO SOARES','JOÃO GUILHERME C. S. NUNES','RAFAEL SILVA PEREIRA','THIAGO MENDES LIMA'],[5,4,3,1]),
+              'ELÉTRICA':wteam(['FABIO SANTOS NUNES','GUSTAVO HENRIQUE ÁVILA','PEDRO HENRIQUE PEREIRA'],[5,3,2])};
   const cat=[
    ['TALHA MAN COMPAC 2 CORR CAP 3TON ELEV MAX 5M RED 138/1','MECÂNICA','10217',5,40,600],
    ['GUINCHO HIDRAULICO MANUAL CAP 2000KG ALT ELEV','MECÂNICA','10312',3,80,900],
    ['MACACO HIDRAULICO 100TON','MECÂNICA','10105',3,60,700],
    ['BOMBA MANUAL HIDRAULICA GUIMMY','MECÂNICA','10440',2,100,1200],
    ['CARRINHO PLATAFORMA CAP 300KG','MECÂNICA','10590',2,20,300],
-   ['COMPRESSOR AR 50L','MECÂNICA','10655',1,120,1400],
    ['FURADEIRA BAS MAGN 220-60HZ 1200W','ELÉTRICA','01207',4,50,500],
-   ['ESMERILHADEIRA ANGULAR 7 POL 2200W','ELÉTRICA','01310',4,30,350],
+   ['ESMERILHADEIRA ANGULAR 7 POL 2200W','ELÉTRICA','10334',5,30,350],
    ['MARTELETE ROMPEDOR 10KG 1500W','ELÉTRICA','01422',2,80,900],
-   ['ESTAÇÃO CARREGAMENTO BATERIAS','ELÉTRICA','01501',1,100,1500],
-   ['SERRA MARMORE 1400W','ELÉTRICA','01633',1,40,420]
+   ['LAVADORA ALTA PRESSÃO KARCHER HD 10/25','ELÉTRICA','01501',1,100,1500],
+   ['PARAFUSADEIRA DE IMPACTO','ELÉTRICA','01633',2,40,420]
   ];
   const pool=cat.map(c=>Array.from({length:40},()=>c[2]+'-'+String(1+Math.floor(rnd()*450)).padStart(4,'0')));
   const wts=[];cat.forEach((c,i)=>{for(let k=0;k<c[3];k++)wts.push(i);});
-  const atv=['Troca de rolamentos e lubrificação geral.','Substituição de gancho e trava de segurança; teste de carga.','Reparo do sistema hidráulico, troca de vedações e óleo.','Troca de escovas de carvão e limpeza do induzido.','Substituição de cabo de alimentação e plugue.','Ajuste de freio, troca de corrente e teste final.','Troca de interruptor e cabo; teste de isolamento.','Reaperto geral, pintura e identificação.'];
-  const solic=['ALMOXARIFADO A3','ALMOXARIFADO A1','GERÊNCIA','ENGENHARIA','SEGURANÇA DO TRABALHO'];
-  const obras=['123','125','127','130','132'];
+  const atv=['Teste elétrico, limpeza, troca de cabo com plug.','Troca de rolamentos e lubrificação geral.','Substituição de gancho e trava de segurança; teste de carga.','Reparo do sistema hidráulico, troca de vedações e óleo.','Troca de escovas de carvão e limpeza do induzido.','Troca de interruptor; teste de isolamento.','Reaperto geral, pintura e identificação.'];
+  const solic=['ALMOXARIFADO A3','ALMOXARIFADO A1','GERÊNCIA','RECEBIMENTO'];
+  const obras=['123','124','125','126','127'];
   const hoje=today0(),start=ad(hoje,-335);
-  const ordens=[],itens=[];let osId=0;
+  const ordens=[],itens=[];let osId=0,itId=0;
   for(let t=start;t<=hoje;t=ad(t,1)){
     const wd=new Date(t).getDay();if(wd===0)continue;
     const dias=dd(hoje,t);
-    let l=wd===6?0.5:1.7;if(dias<40)l*=0.55;if(dias<12)l*=0.55;
+    let l=wd===6?0.5:1.7;if(dias<40)l*=0.55;if(dias<12)l*=0.6;
     const n=pois(l);
     for(let q=0;q<n;q++){
-      osId++;const k=1+Math.floor(rnd()*rnd()*8);
+      osId++;const k=rnd()<0.03?15+Math.floor(rnd()*15):1+Math.floor(rnd()*rnd()*9);
       const prio=pick(['ALTA','ALTA','MEDIA','MEDIA','MEDIA','BAIXA']);
       const prevD={ALTA:3,MEDIA:7,BAIXA:14}[prio];
-      const rec=ad(t,Math.floor(rnd()*3));
-      const obra=pick(obras);const sol=pick(solic);
+      const rec=t,ab=rnd()<0.15?ad(t,-Math.floor(rnd()*4)):t;
+      const obra=pick(obras),sol=pick(solic);
       const its=[];
       for(let j=0;j<k;j++){
-        const ci=pick(wts),c=cat[ci];
-        const ini=ad(rec,Math.floor(rnd()*3));
-        let dur=rnd()<0.07?15+rnd()*60:rnd()*rnd()*14;if(c[1]==='MECÂNICA')dur*=1.3;
-        dur=Math.floor(dur);const fim=ad(ini,dur);
-        let status,fimIt=null,valor=0;
-        if(fim>hoje){status=rnd()<0.3?'AGUARDANDO PEÇA':'EM MANUTENÇÃO';}
-        else{const u=rnd();status=u<0.82?'CONCLUIDO':u<0.92?'MANUTENÇÃO EXTERNA':'SUCATA';fimIt=fim;
-          if(status==='CONCLUIDO')valor=rnd()<0.35?0:c[4]+rnd()*rnd()*(c[5]-c[4]);
-          else if(status==='MANUTENÇÃO EXTERNA')valor=rnd()<0.5?0:c[5]*(1+rnd());}
-        its.push({ci,c,status,ini,fimIt,valor:Math.round(valor*100)/100});
+        const c=cat[pick(wts)],setor=c[1];
+        const ini=ad(rec,Math.floor(rnd()*rnd()*4));
+        const u=rnd();let dur=u<0.75?0:u<0.93?1+Math.floor(rnd()*2):3+Math.floor(rnd()*18);
+        if(rnd()<0.03)dur=30+Math.floor(rnd()*60);
+        const fim=ad(ini,dur);
+        const patr=pick(pool[cat.indexOf(c)]);
+        let status,iniIt=ini,fimIt=null,valor=0,resp='';
+        if(ini>hoje){status='NÃO INICIADO';iniIt=null;}
+        else if(fim>hoje){const v=rnd();status=v<0.5?'EM MANUTENÇÃO':v<0.65?'PAUSADO':'AGUARDANDO PEÇA';resp=pick(team[setor]);}
+        else{
+          if(dias>10&&rnd()<0.03){status='NÃO INICIADO';iniIt=null;}
+          else{const v=rnd();status=v<0.84?'CONCLUIDO':v<0.9?'MANUTENÇÃO EXTERNA':v<0.96?'SUCATA':'CANCELADO';fimIt=fim;resp=pick(team[setor]);
+            if(status==='CONCLUIDO')valor=rnd()<0.3?0:c[4]+rnd()*rnd()*(c[5]-c[4]);
+            else if(status==='MANUTENÇÃO EXTERNA')valor=rnd()<0.5?0:c[5]*(1+rnd());}
+        }
+        its.push({c,patr,status,setor,iniIt,fimIt,resp,valor:Math.round(valor*100)/100});
       }
       const allDone=its.every(x=>x.fimIt!=null);
       const fech=allDone?Math.max(...its.map(x=>x.fimIt)):null;
-      ordens.push({ID_OS:osId,DATA_ABERTURA:toISO(t),DATA_RECEBIDA:toISO(rec),DATA_FECHAMENTO:fech!=null?toISO(fech):'',MANUTENCAO:'INTERNA',SOLICITANTE:sol,
-        DESCRICAO_GERAL:'OBRA: '+obra+'.\n'+its[0].c[0]+(k>1?' e mais '+(k-1)+' item(ns)':''),PRIORIDADE:prio,STATUS_OS:allDone?'OS LIBERADA':'EM ANDAMENTO',
-        SETOR_RESPONSAVEL:its[0].c[1],CUSTO_EM_PECAS:Math.round(sum(its,x=>x.valor)*100)/100,DATA_DE_PREVISAO:toISO(ad(t,prevD))});
-      its.forEach((x,j)=>{
-        itens.push({ID_ITEM_OS:'demo'+osId+'_'+j,ID_OS_REF:osId,PATRIMONIO_REF:pick(pool[x.ci]),DESCRICAO_MATERIAL:x.c[0],STATUS:x.status,
-          RESPONSAVEL:pick(team[x.c[1]]),SETOR:x.c[1],DATA_INICIO_MANUTENCAO:toISO(x.ini),DATA_FIM_MANUTENCAO:x.fimIt!=null?toISO(x.fimIt):'',
-          DESCRICAO_ATIVIDADE:x.fimIt!=null?pick(atv):'',VALOR_GASTO:x.valor,RELATORIO_GERADO:x.fimIt!=null,LINK_DO_RELATORIO:x.fimIt!=null?'https://example.com/relatorio-demonstracao.pdf':''});
+      const statusOS=allDone?'OS LIBERADA':its.some(x=>x.status!=='NÃO INICIADO')?'EM MANUTENÇÃO':'AGUARDANDO MANUTENÇÃO';
+      ordens.push({ID_OS:osId,DATA_ABERTURA:toISO(ab),DATA_RECEBIDA:toISO(rec),DATA_FECHAMENTO:fech!=null?toISO(fech):'',MANUTENCAO:rnd()<0.9?'INTERNA':'RETORNO DE OBRA',SOLICITANTE:sol,
+        DESCRICAO_GERAL:'OBRA: '+obra+' / RM: '+(117000+osId)+' / QUANTIDADE:'+k+'. '+its[0].c[0],PRIORIDADE:prio,STATUS_OS:statusOS,
+        SETOR_RESPONSAVEL:its[0].setor,CUSTO_EM_PECAS:Math.round(sum(its,x=>x.valor)*100)/100,DATA_DE_PREVISAO:toISO(ad(ab,prevD))});
+      its.forEach(x=>{
+        const ok=x.status==='CONCLUIDO';
+        itens.push({ID_ITEM_OS:'d'+(++itId).toString(16).padStart(7,'0'),ID_OS_REF:osId,PATRIMONIO_REF:x.patr,DESCRICAO_MATERIAL:x.c[0],STATUS:x.status,
+          RESPONSAVEL:x.resp,SETOR:x.setor,DATA_INICIO_MANUTENCAO:x.iniIt!=null?toISO(x.iniIt):'',DATA_FIM_MANUTENCAO:x.fimIt!=null?toISO(x.fimIt):'',
+          DESCRICAO_ATIVIDADE:ok?pick(atv):'',VALOR_GASTO:x.valor,RELATORIO_GERADO:ok,LINK_DO_RELATORIO:ok?'https://example.com/relatorio-demonstracao.pdf':''});
       });
     }
   }
@@ -434,10 +459,10 @@ function genDemo(){
 
 /* ====================== filtros e derivados ====================== */
 function itemBase(i,skip){for(const k in KEYS){if(k!==skip&&F[k].size&&!F[k].has(KEYS[k](i)))return false;}return true;}
-function refDate(i){return F.ref==='fim'?i.fimEf:F.ref==='ab'?i.os.ab:i.ini;}
 const inR=(t,a,b)=>t!=null&&t>=a&&t<=b;
 function itemsBase(skip=''){const k='B'+skip;return memo[k]||(memo[k]=DATA.items.filter(i=>itemBase(i,skip)));}
-function itemsIn(skip='',a=S.from,b=S.to){const k='I'+skip+'|'+a+'|'+b;return memo[k]||(memo[k]=itemsBase(skip).filter(i=>inR(refDate(i),a,b)));}
+function itemsIn(skip='',a=S.from,b=S.to){const k='I'+skip+'|'+a+'|'+b;return memo[k]||(memo[k]=itemsBase(skip).filter(i=>inR(i.fimEf,a,b)));}
+function entIn(skip='',a=S.from,b=S.to){const k='E'+skip+'|'+a+'|'+b;return memo[k]||(memo[k]=itemsBase(skip).filter(i=>inR(i.ent,a,b)));}
 function osIn(skip='',a=S.from,b=S.to){
   const k='O'+skip+'|'+a+'|'+b;if(memo[k])return memo[k];
   const itemOn=['setor','resp','cls','tipo'].some(x=>x!==skip&&F[x].size);
@@ -459,16 +484,12 @@ function series(list,dfn,ks,g,vfn){
   const idx=new Map(ks.map((k,i)=>[k,i])),arr=ks.map(()=>0);
   list.forEach(it=>{const t=dfn(it);if(t==null||t<S.from||t>S.to)return;const i=idx.get(bKey(t,g));if(i!=null)arr[i]+=vfn?vfn(it):1;});return arr;
 }
-function seriesAvg(list,dfn,vfn,ks,g){
-  const idx=new Map(ks.map((k,i)=>[k,i])),s=ks.map(()=>0),c=ks.map(()=>0);
-  list.forEach(it=>{const t=dfn(it),v=vfn(it);if(t==null||v==null||t<S.from||t>S.to)return;const i=idx.get(bKey(t,g));if(i!=null){s[i]+=v;c[i]++;}});
-  return s.map((x,i)=>c[i]?x/c[i]:null);
-}
-function stockAt(list,t){let n=0;for(const i of list){if(i.ini!=null&&i.ini<=t&&(i.fimEf==null||i.fimEf>t))n++;}return n;}
+function stockAt(list,t){let n=0;for(const i of list){if(i.ent!=null&&i.ent<=t&&(i.fimEf==null||i.fimEf>t))n++;}return n;}
 function stockSeries(list,ks,g){return ks.map(k=>{const e=Math.min(ad(bNext(k,g),-1),S.to);return stockAt(list,e);});}
 function groupBy(list,kf){const m=new Map();list.forEach(i=>{const k=kf(i);(m.get(k)||m.set(k,[]).get(k)).push(i);});return m;}
 function diasUteis(a,b){let n=0;for(let t=a,c=0;t<=b&&c<4000;t=ad(t,1),c++){const w=new Date(t).getDay();if(w>0&&w<6)n++;}return n;}
 const lab=(k,v)=>k==='cls'?(CLS[v]?CLS[v].n:v):v;
+const short=n=>String(n).split(' ').slice(0,2).join(' ');
 
 /* ====================== gráficos ====================== */
 const charts={};
@@ -548,7 +569,7 @@ function csvTbl(box){
   const cols=box._cols,rows=box._all||[];
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   const txt=[cols.map(c=>q(c.t)).join(';')].concat(rows.map(r=>cols.map(c=>q(cv(c,r))).join(';'))).join('\r\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+txt],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+txt],{type:'text/csv;charset=utf-8'}));
   a.download=(box.id||'tabela')+'_'+toISO(today0())+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
 }
 const badge=i=>`<span class="bd ${i.cls}" title="${esc(i.status)}">${esc(i.cls==='ABERTO'?i.status:CLS[i.cls].n)}</span>`;
@@ -559,8 +580,8 @@ const COLS_ITEM=[
   {t:'OS',v:i=>/^\d+$/.test(i.osId)?+i.osId:i.osId},
   {t:'Status',v:i=>i.status,f:badge},
   {t:'Responsável',v:i=>i.resp},{t:'Setor',v:i=>i.setor},
-  {t:'Início',v:i=>i.ini,d:1},{t:'Saída',v:i=>i.fimEf,d:1},
-  {t:'Dias',v:i=>i.dias,n:1,cls:'num'},{t:'Valor',v:i=>i.valor,m:1,cls:'num'},
+  {t:'Entrada',v:i=>i.ent,d:1},{t:'Início',v:i=>i.ini,d:1},{t:'Fim',v:i=>i.fimEf,d:1},
+  {t:'Valor',v:i=>i.valor,m:1,cls:'num'},
   {t:'Relatório',v:i=>i.link?'sim':'',f:pdfBtn}
 ];
 
@@ -568,10 +589,12 @@ const COLS_ITEM=[
 function openModal(h){$('#modalBox').innerHTML='<button class="btn xx" onclick="closeModal()">✕ Fechar</button>'+h;$('#modal').classList.add('on');}
 function closeModal(){$('#modal').classList.remove('on');}
 function showItem(i){
+  const aberto=i.cls==='ABERTO'&&i.ent!=null?dd(today0(),i.ent):null;
   openModal(`<h2 style="margin:0">${esc(i.pat)} ${badge(i)}</h2><div>${esc(i.desc)}</div>
   <div class="kv"><div><small>OS</small>${esc(i.osId)} · obra ${esc(i.os.obra)}</div><div><small>Responsável</small>${esc(i.resp)}</div><div><small>Setor</small>${esc(i.setor)}</div>
-  <div><small>Início</small>${fdate(i.ini)}</div><div><small>Saída da oficina</small>${fdate(i.fimEf)}</div><div><small>Dias na oficina</small>${i.dias==null?(i.ini!=null?num(dd(today0(),i.ini))+' (em andamento)':'—'):num(i.dias)}</div>
-  <div><small>Valor gasto</small>${brl(i.valor)}</div><div><small>Prioridade da OS</small>${esc(i.os.prio)}</div><div><small>Solicitante</small>${esc(i.os.sol)}</div></div>
+  <div><small>Entrada na oficina</small>${fdate(i.ent)}</div><div><small>Início da manutenção</small>${fdate(i.ini)}</div><div><small>Fim da manutenção</small>${fdate(i.fimEf)}</div>
+  <div><small>Valor gasto</small>${brl(i.valor)}</div><div><small>Prioridade da OS</small>${esc(i.os.prio)}</div><div><small>Solicitante</small>${esc(i.os.sol)}</div>
+  ${aberto!=null?`<div><small>Na oficina há</small>${num(aberto)} dia(s)</div>`:''}</div>
   <small style="color:var(--mut)">Atividade realizada</small><div class="txt">${esc(i.ativ||'(sem descrição)')}</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">${i.link?`<a class="btn pri" href="${esc(i.link)}" target="_blank" rel="noopener">Abrir PDF do formulário</a>`:''}
   <button class="btn" onclick="closeModal();goConsulta('${esc(i.pat).replace(/'/g,'')}')">Ver histórico deste patrimônio</button>
@@ -584,9 +607,9 @@ function showOS(o){
   openModal(`<h2 style="margin:0">OS ${esc(o.id)} <span class="pill">${esc(o.status)}</span></h2>
   <div class="kv"><div><small>Abertura</small>${fdate(o.ab)}</div><div><small>Recebida</small>${fdate(o.rec)}</div><div><small>Previsão</small>${fdate(o.prev)}</div><div><small>Fechamento</small>${fdate(o.fech)}</div>
   <div><small>Prioridade</small>${esc(o.prio)}</div><div><small>Solicitante</small>${esc(o.sol)}</div><div><small>Manutenção</small>${esc(o.man)}</div><div><small>Setor</small>${esc(o.setor)}</div>
-  <div><small>Obra</small>${esc(o.obra)}</div><div><small>Custo em peças (OS)</small>${brl(o.custo)}</div></div>
+  <div><small>Obra</small>${esc(o.obra)}</div><div><small>Gasto em peças (OS)</small>${brl(o.custo)}</div><div><small>Equipamentos</small>${its.length}</div></div>
   <div class="txt">${esc(o.desc||'(sem descrição)')}</div>
-  <div class="tw"><table><thead><tr><th>Patrimônio</th><th>Equipamento</th><th>Status</th><th>Responsável</th><th class="num">Valor</th><th>PDF</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">Sem itens.</td></tr>'}</tbody></table></div>`);
+  <div class="tw" style="max-height:50vh"><table><thead><tr><th>Patrimônio</th><th>Equipamento</th><th>Status</th><th>Responsável</th><th class="num">Valor</th><th>PDF</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">Sem itens.</td></tr>'}</tbody></table></div>`);
 }
 function goConsulta(q){$('#qBusca').value=q;setTab('consulta');}
 
@@ -606,173 +629,208 @@ const pc=(a,b)=>b?num(a/b*100,0)+'%':'—';
 function insights(){
   const out=[],t=today0(),A=itemsBase('');
   if(!A.length)return [{t:'info',h:'Sem dados',x:'Nenhum equipamento encontrado com os filtros atuais.'}];
-  const cnt=(fn,a,b)=>A.reduce((n,i)=>{const d=fn(i);return n+(d!=null&&d>=a&&d<=b?1:0);},0);
+  const cnt=(fn,a,b,f)=>A.reduce((n,i)=>{const d=fn(i);return n+(d!=null&&d>=a&&d<=b&&(!f||f(i))?1:0);},0);
   const pct=(c,p)=>p?((c-p)/p*100):null;
   const sgn=p=>p==null?'':` (${p>0?'+':''}${num(p,0)}%)`;
   [7,30].forEach(w=>{
     const a=ad(t,-(w-1)),pa=ad(t,-(2*w-1)),pb=ad(t,-w);
-    const e=cnt(i=>i.ini,a,t),ep=cnt(i=>i.ini,pa,pb),s=cnt(i=>i.fimEf,a,t),sp=cnt(i=>i.fimEf,pa,pb);
+    const e=cnt(i=>i.ent,a,t),ep=cnt(i=>i.ent,pa,pb),s=cnt(i=>i.fimEf,a,t),sp=cnt(i=>i.fimEf,pa,pb);
     const pe=pct(e,ep),ps=pct(s,sp);
     if(e||ep)out.push({t:pe!=null&&pe<=-20?'warn':'ok',h:`Entradas — últimos ${w} dias`,x:`${e} equipamento(s) entraram na oficina contra ${ep} nos ${w} dias anteriores${sgn(pe)}.`});
-    if(s||sp)out.push({t:ps!=null&&ps<=-20?'warn':'ok',h:`Saídas — últimos ${w} dias`,x:`${s} equipamento(s) saíram (concluídos, sucata ou externos) contra ${sp} nos ${w} dias anteriores${sgn(ps)}.`});
+    if(s||sp)out.push({t:ps!=null&&ps<=-20?'warn':'ok',h:`Saídas — últimos ${w} dias`,x:`${s} equipamento(s) saíram da oficina contra ${sp} nos ${w} dias anteriores${sgn(ps)}.`});
   });
   const s0=stockAt(A,t),s30=stockAt(A,ad(t,-30));
   out.push({t:s0>s30*1.2&&s0-s30>=3?'warn':'info',h:'Estoque na oficina',x:`${s0} equipamento(s) agora contra ${s30} há 30 dias. ${s0<s30?'A oficina está esvaziando.':s0>s30?'A fila está crescendo.':'Sem mudança.'}`});
-  const open=A.filter(i=>i.cls==='ABERTO'&&i.ini!=null).map(i=>({i,d:dd(t,i.ini)})).sort((a,b)=>b.d-a.d);
+  const open=A.filter(i=>i.cls==='ABERTO'&&i.ent!=null).map(i=>({i,d:dd(t,i.ent)})).sort((a,b)=>b.d-a.d);
   const old=open.filter(x=>x.d>CFG.limite);
-  if(old.length)out.push({t:'bad',h:`${old.length} parado(s) há mais de ${CFG.limite} dias`,x:`Mais antigo: ${old[0].i.pat} (${old[0].i.resp}) há ${old[0].d} dias. Veja a aba “Oficina agora”.`});
-  else if(open.length)out.push({t:'ok',h:'Nada parado além do limite',x:`Nenhum equipamento está há mais de ${CFG.limite} dias na oficina.`});
-  const gs=topN(groupBy(open.map(x=>x.i),i=>i.setor),1,l=>l.length)[0];
-  if(gs)out.push({t:'info',h:'Setor com mais equipamentos na oficina',x:`${gs[0]}: ${gs[1]} de ${open.length}.`});
-  const rec14=ad(t,-14),ativos=new Map(open.map(x=>[x.i.resp,1]));
-  const feitos=new Set(A.filter(i=>i.fimEf!=null&&i.fimEf>=rec14).map(i=>i.resp));
-  const parados=[...ativos.keys()].filter(r=>!feitos.has(r)&&r!=='(SEM RESPONSÁVEL)');
-  if(parados.length)out.push({t:'warn',h:'Sem entregas em 14 dias',x:`${parados.slice(0,4).join(', ')}${parados.length>4?'…':''} têm equipamento na oficina e nenhuma conclusão nos últimos 14 dias.`});
-  const late=DATA.os.filter(o=>o.fech==null&&o.prev!=null&&o.prev<t).length;
-  if(late)out.push({t:'warn',h:'OS em aberto com prazo vencido',x:`${late} OS passaram da data de previsão e ainda não foram fechadas.`});
-  const P=S.P,ext=P.filter(i=>i.cls==='EXTERNA').length,suc=P.filter(i=>i.cls==='SUCATA').length;
-  if(P.length)out.push({t:suc/P.length>0.12?'warn':'info',h:'Destino no período selecionado',x:`${pc(sum(P,i=>i.cls==='CONCLUIDO'?1:0),P.length)} concluídos, ${pc(ext,P.length)} manutenção externa, ${pc(suc,P.length)} sucata.`});
-  const q=DATA.quality.reduce((n,x)=>n+x.items.length,0);
-  if(q)out.push({t:'info',h:'Qualidade dos dados',x:`${q} ocorrência(s) de inconsistência na planilha. Veja a aba “Dados e qualidade”.`});
+  if(old.length)out.push({t:'bad',h:`${old.length} na oficina há mais de ${CFG.limite} dias`,x:`Mais antigo: ${old[0].i.pat} (${old[0].i.status}) há ${old[0].d} dias. Veja a aba “Oficina agora”.`});
+  else if(open.length)out.push({t:'ok',h:'Nada além do limite de dias',x:`Nenhum equipamento está há mais de ${CFG.limite} dias na oficina.`});
+  const pend=open.filter(x=>['PAUSADO','AGUARDANDO PECA'].includes(N(x.i.status)));
+  if(pend.length)out.push({t:'warn',h:'Pausados / aguardando peça',x:`${pend.length} equipamento(s) travados: ${pend.filter(x=>N(x.i.status)==='PAUSADO').length} pausado(s) e ${pend.filter(x=>N(x.i.status)==='AGUARDANDO PECA').length} aguardando peça.`});
+  const c14=ad(t,-14),c60=ad(t,-60);
+  const conc=A.filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA);
+  const antes=new Set(conc.filter(i=>i.fimEf>=c60&&i.fimEf<c14).map(i=>i.resp)),recentes=new Set(conc.filter(i=>i.fimEf>=c14).map(i=>i.resp));
+  const sem=[...antes].filter(r=>!recentes.has(r));
+  if(sem.length)out.push({t:'warn',h:'Sem conclusões nos últimos 14 dias',x:`${sem.slice(0,4).map(short).join(', ')}${sem.length>4?'…':''} entregaram nos 45 dias anteriores, mas nada nos últimos 14.`});
+  const RS=respStats(),quedas=RS.filter(r=>r.delta!=null&&r.prev>=5&&r.delta<=-30).sort((a,b)=>a.delta-b.delta);
+  if(quedas.length)out.push({t:'warn',h:'Queda de produção no período',x:`${quedas.slice(0,3).map(r=>`${short(r.resp)} (${num(r.delta,0)}%)`).join(', ')} concluíram bem menos que no período anterior.`});
+  const lider=RS.slice().sort((a,b)=>b.conc-a.conc)[0];
+  if(lider&&lider.conc)out.push({t:'ok',h:'Destaque do período selecionado',x:`${short(lider.resp)} concluiu ${num(lider.conc)} equipamento(s)${lider.share!=null?` (${num(lider.share,0)}% da equipe)`:''}.`});
+  const late=DATA.os.filter(o=>!isLib(o)&&o.prev!=null&&o.prev<t).length;
+  if(late)out.push({t:'warn',h:'OS com prazo vencido',x:`${late} OS ainda não liberadas passaram da data de previsão.`});
+  const q=DATA.quality.filter(x=>['concSemResp','osFinalNaoLib','osLibPend'].includes(x.k)).reduce((n,x)=>n+x.items.length,0);
+  if(q)out.push({t:'info',h:'Atenção aos dados',x:`${q} ocorrência(s) que distorcem o desempenho ou o quadro de OS. Veja a aba “Dados e qualidade”.`});
   return out;
+}
+
+/* ====================== desempenho por colaborador ====================== */
+function respStats(){
+  const P=itemsIn('resp'),PV=itemsIn('resp',S.pf,S.pt),A=itemsBase('resp'),m=new Map();
+  const g=r=>m.get(r)||(m.set(r,{resp:r,tot:0,conc:0,ext:0,suc:0,can:0,and:0,dias:new Set(),custo:0,prev:0,set:new Map()}),m.get(r));
+  P.forEach(i=>{if(i.resp===NA)return;const s=g(i.resp);s.tot++;
+    if(i.cls==='CONCLUIDO'){s.conc++;s.dias.add(i.fimEf);}else if(i.cls==='EXTERNA')s.ext++;else if(i.cls==='SUCATA')s.suc++;else if(i.cls==='CANCELADO')s.can++;
+    s.custo+=i.valor;s.set.set(i.setor,(s.set.get(i.setor)||0)+1);});
+  PV.forEach(i=>{if(i.resp!==NA&&i.cls==='CONCLUIDO')g(i.resp).prev++;});
+  A.forEach(i=>{if(emAndamento(i)&&i.resp!==NA)g(i.resp).and++;});
+  const du=Math.max(1,diasUteis(S.from,S.to)),all=[...m.values()],tc=sum(all,s=>s.conc);
+  const comparavel=S.pf>=DATA.min;
+  return all.map(s=>{const st=topN(s.set,1,x=>x)[0];
+    return Object.assign(s,{nd:s.dias.size,pda:s.dias.size?s.conc/s.dias.size:null,pdu:s.conc/du,share:tc?s.conc/tc*100:null,
+      delta:(comparavel&&s.prev)?(s.conc-s.prev)/s.prev*100:null,setor:st?st[0]:'—'});});
+}
+function heatHtml(RS){
+  let g=gran(),ks=buckets(S.from,S.to,g);
+  if(ks.length>60){g=g==='day'?'week':'month';ks=buckets(S.from,S.to,g);}
+  const rows=RS.filter(r=>r.conc>0).sort((a,b)=>b.conc-a.conc).slice(0,15);
+  if(!rows.length)return '<div style="padding:16px;color:var(--mut)">Nenhuma conclusão no período.</div>';
+  const idx=new Map(ks.map((k,i)=>[k,i])),cnt=new Map(rows.map(r=>[r.resp,ks.map(()=>0)]));
+  itemsBase('resp').forEach(i=>{if(i.cls!=='CONCLUIDO'||i.resp===NA||!inR(i.fimEf,S.from,S.to))return;const row=cnt.get(i.resp);if(!row)return;const x=idx.get(bKey(i.fimEf,g));if(x!=null)row[x]++;});
+  let mx=1;cnt.forEach(a=>a.forEach(v=>{if(v>mx)mx=v;}));
+  const head='<tr><th>Colaborador</th>'+ks.map(k=>`<th title="${esc(bLabel(k,g))}">${esc(bLabel(k,g))}</th>`).join('')+'<th class="num">Total</th></tr>';
+  const body=rows.map(r=>{const a=cnt.get(r.resp);
+    return `<tr><td>${esc(r.resp)}</td>${a.map((v,i)=>{const al=v?0.12+0.88*v/mx:0;return `<td title="${esc(r.resp)} — ${esc(bLabel(ks[i],g))}: ${v}" style="${v?`background:rgba(22,163,74,${al.toFixed(2)});color:${al>0.55?'#fff':'inherit'}`:''}">${v||''}</td>`;}).join('')}<td class="num"><b>${sum(a)}</b></td></tr>`;}).join('');
+  return `<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
 /* ====================== renderizadores por aba ====================== */
 const R={};
+R.equipe=()=>{
+  const RS=respStats(),P=itemsIn('resp'),sel=F.resp.size;
+  const base=RS.filter(r=>r.tot>0),conc=sum(base,r=>r.conc),concV=itemsIn('resp',S.pf,S.pt).filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA).length;
+  const du=Math.max(1,diasUteis(S.from,S.to));
+  const porDia=new Map();P.forEach(i=>{if(i.cls==='CONCLUIDO')porDia.set(i.fimEf,(porDia.get(i.fimEf)||0)+1);});
+  const melhor=[...porDia.entries()].sort((a,b)=>b[1]-a[1])[0];
+  const lider=base.slice().sort((a,b)=>b.conc-a.conc)[0];
+  const exits=P.filter(i=>i.resp!==NA).length;
+  const semR=P.filter(i=>i.cls==='CONCLUIDO'&&i.resp===NA).length;
+  const trav=itemsBase('resp').filter(i=>i.cls==='ABERTO'&&['PAUSADO','AGUARDANDO PECA'].includes(N(i.status))).length;
+  set('kEquipe',[
+    kpi('Concluídos no período',num(conc),{t:'ok',d:dl(conc,concV,'up'),s:`${num(exits)} saídas no total`}),
+    kpi('Colaboradores com entrega',num(base.filter(r=>r.conc>0).length),{s:`de ${num(RS.length)} com atividade`}),
+    kpi('Média por colaborador',base.length?num(conc/base.filter(r=>r.conc>0).length||0,1):'—',{s:'concluídos no período'}),
+    kpi('Média da equipe por dia útil',num(conc/du,1),{s:`${num(du)} dias úteis (seg–sex)`}),
+    kpi('Destaque',lider&&lider.conc?esc(short(lider.resp)):'—',{t:'ok',s:lider&&lider.conc?`${num(lider.conc)} concluídos`:''}),
+    kpi('Melhor dia da equipe',melhor?num(melhor[1]):'—',{s:melhor?fdate(melhor[0]):''}),
+    kpi('Taxa de conclusão',pc(conc,exits),{s:'concluídos ÷ todas as saídas'}),
+    kpi('Pausados / aguardando peça',num(trav),{t:trav?'warn':'ok',s:'sob responsabilidade da equipe'}),
+    semR?kpi('Concluídos sem responsável',num(semR),{t:'bad',s:'não entram no ranking'}):''
+  ].join(''));
+  tbl('tbEquipe',[
+    {t:'Colaborador',v:r=>r.resp,f:r=>`<b>${esc(r.resp)}</b>`},{t:'Setor',v:r=>r.setor},
+    {t:'Concluídos',v:r=>r.conc,n:1,cls:'num',f:r=>`<b>${num(r.conc)}</b>`},
+    {t:'Var. vs anterior',v:r=>r.delta,n:1,dec:0,cls:'num',f:r=>r.delta==null?'—':`<span style="color:${r.delta>=0?'var(--ok)':'var(--bad)'}">${r.delta>0?'+':''}${num(r.delta,0)}%</span>`},
+    {t:'% da equipe',v:r=>r.share,n:1,dec:0,cls:'num',f:r=>r.share==null?'—':num(r.share,0)+'%'},
+    {t:'Dias com entrega',v:r=>r.nd,n:1,cls:'num'},{t:'Média/dia com entrega',v:r=>r.pda,n:1,dec:1,cls:'num'},{t:'Média/dia útil',v:r=>r.pdu,n:1,dec:2,cls:'num'},
+    {t:'Externos',v:r=>r.ext,n:1,cls:'num'},{t:'Sucata',v:r=>r.suc,n:1,cls:'num'},{t:'Cancelados',v:r=>r.can,n:1,cls:'num'},
+    {t:'Em andamento agora',v:r=>r.and,n:1,cls:'num'},{t:'Gasto em peças',v:r=>r.custo,m:1,cls:'num'}
+  ],RS.filter(r=>r.tot>0||r.and>0),{sort:2,dir:-1,size:12,onRow:r=>toggle('resp',r.resp),sel:r=>F.resp.has(r.resp)});
+  const T=base.slice().sort((a,b)=>b.tot-a.tot).slice(0,15).reverse(),tl=T.map(r=>r.resp);
+  mk('cEqResp',{type:'bar',data:{labels:tl,datasets:[['conc','CONCLUIDO'],['ext','EXTERNA'],['suc','SUCATA'],['can','CANCELADO']].map(([k,c])=>({label:CLS[c].n,data:T.map(r=>r[k]),backgroundColor:tl.map(x=>dim('resp',x,CLS[c].c)),borderRadius:2}))},options:opts({stack:true,horizontal:true,legend:true,onClick:cf('resp')})});
+  const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
+  const tp=base.slice().sort((a,b)=>b.conc-a.conc).slice(0,6),A=itemsBase('resp');
+  mk('cEqEvol',{type:'line',data:{labels,datasets:tp.map((r,j)=>({label:short(r.resp),data:series(A.filter(i=>i.resp===r.resp&&i.cls==='CONCLUIDO'),i=>i.fimEf,ks,g),borderColor:PAL[j%PAL.length],backgroundColor:PAL[j%PAL.length],tension:.25,pointRadius:ks.length>60?0:2}))},options:opts({legend:true})});
+  set('heatBox',heatHtml(RS));
+  const pd=base.filter(r=>r.conc>0).sort((a,b)=>a.pdu-b.pdu).slice(-15);
+  mk('cEqPdu',{type:'bar',data:{labels:pd.map(r=>r.resp),datasets:[{label:'Concluídos por dia útil',data:pd.map(r=>+r.pdu.toFixed(2)),backgroundColor:pd.map(r=>dim('resp',r.resp,'#16a34a')),borderRadius:3}]},options:opts({horizontal:true,dec:true,onClick:cf('resp')})});
+  const sh=base.filter(r=>r.conc>0).sort((a,b)=>b.conc-a.conc).slice(0,10);
+  mk('cEqShare',{type:'doughnut',data:{labels:sh.map(r=>r.resp),datasets:[{data:sh.map(r=>r.conc),backgroundColor:sh.map((r,j)=>dim('resp',r.resp,PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('resp'))});
+  const ca=RS.filter(r=>r.and>0).sort((a,b)=>a.and-b.and),openI=itemsBase('resp').filter(i=>emAndamento(i)&&i.resp!==NA);
+  const sts=['EM MANUTENÇÃO','PAUSADO','AGUARDANDO PEÇA'];
+  mk('cEqCarga',{type:'bar',data:{labels:ca.map(r=>r.resp),datasets:sts.map(s=>({label:s,data:ca.map(r=>openI.filter(i=>i.resp===r.resp&&i.status===s).length),backgroundColor:ST_OPEN_COLOR[s],borderRadius:2}))},options:opts({stack:true,horizontal:true,legend:true,onClick:cf('resp')})});
+  $('#eqDetHint').style.display=sel?'none':'';
+  $('#tbEqDet').style.display=sel?'':'none';
+  if(sel){
+    $('#eqDetTitulo').textContent='Equipamentos de '+[...F.resp].map(short).join(', ')+' — saídas de '+fdate(S.from)+' a '+fdate(S.to);
+    tbl('tbEqDet',COLS_ITEM,P,{sort:8,dir:-1,onRow:showItem});
+  }else $('#eqDetTitulo').textContent='Equipamentos dos colaboradores selecionados';
+};
+
 R.geral=()=>{
   const {P,PV,A}=S,t=today0();
-  const C=P.filter(i=>i.cls==='CONCLUIDO'),CV=PV.filter(i=>i.cls==='CONCLUIDO');
-  const ext=P.filter(i=>i.cls==='EXTERNA'),suc=P.filter(i=>i.cls==='SUCATA');
-  const open=A.filter(i=>i.cls==='ABERTO'&&i.ini!=null),old=open.filter(i=>dd(t,i.ini)>CFG.limite);
-  const tmr=avg(C.filter(i=>i.dias!=null).map(i=>i.dias)),tmrV=avg(CV.filter(i=>i.dias!=null).map(i=>i.dias));
+  const ent=entIn('',S.from,S.to).length,entV=entIn('',S.pf,S.pt).length;
+  const by=(L,c)=>L.filter(i=>i.cls===c).length;
+  const open=A.filter(i=>i.cls==='ABERTO'),old=open.filter(i=>i.ent!=null&&dd(t,i.ent)>CFG.limite),st30=stockAt(A,ad(t,-30));
+  const trav=open.filter(i=>['PAUSADO','AGUARDANDO PECA'].includes(N(i.status))).length;
   const custo=sum(P,i=>i.valor),custoV=sum(PV,i=>i.valor);
-  const O=osIn(''),OV=osIn('',S.pf,S.pt);
-  const fech=O.filter(o=>o.fech!=null&&o.prev!=null),noP=fech.filter(o=>o.fech<=o.prev).length;
-  const st30=stockAt(A,ad(t,-30));
+  const O=osIn(''),OV=osIn('',S.pf,S.pt),lib=O.filter(isLib).length;
   set('kGeral',[
-    kpi('Equipamentos atendidos',num(P.length),{d:dl(P.length,PV.length,'up'),s:`${num(new Set(P.map(i=>i.pat)).size)} patrimônios distintos`}),
-    kpi('Concluídos',num(C.length),{t:'ok',d:dl(C.length,CV.length,'up'),s:pc(C.length,P.length)+' do total'}),
-    kpi('Na oficina agora',num(open.length),{t:old.length?'warn':'',d:`<div class="d ${open.length<st30?'pos':open.length>st30?'neg':''}">${open.length<st30?'▼':open.length>st30?'▲':'■'} ${st30} <span>há 30 dias</span></div>`,s:`${old.length} parado(s) > ${CFG.limite} dias`}),
-    kpi('Manutenção externa',num(ext.length),{t:'ext',d:dl(ext.length,PV.filter(i=>i.cls==='EXTERNA').length,null),s:pc(ext.length,P.length)+' do total'}),
-    kpi('Sucata',num(suc.length),{t:'scrap',d:dl(suc.length,PV.filter(i=>i.cls==='SUCATA').length,null),s:pc(suc.length,P.length)+' do total'}),
-    kpi('Custo em peças',brl(custo),{d:dl(custo,custoV,null),s:'itens do período'}),
-    kpi('Custo médio / equipamento',brl(P.length?custo/P.length:0),{s:'inclui equipamentos sem custo'}),
-    kpi('Tempo médio de reparo',tmr==null?'—':num(tmr,1)+' d',{d:dl(tmr,tmrV,'down'),s:'concluídos no período'}),
-    kpi('OS abertas',num(O.length),{d:dl(O.length,OV.length,null),s:`${O.filter(o=>o.fech!=null).length} já fechadas`}),
-    kpi('OS dentro do prazo',fech.length?pc(noP,fech.length):'—',{t:fech.length&&noP/fech.length<0.7?'warn':'ok',s:`${fech.length} OS fechadas com previsão`})
+    kpi('Entradas na oficina',num(ent),{d:dl(ent,entV,null),s:'pela data da OS'}),
+    kpi('Saídas da oficina',num(P.length),{d:dl(P.length,PV.length,'up'),s:'concluídos + externos + sucata + cancelados'}),
+    kpi('Concluídos',num(by(P,'CONCLUIDO')),{t:'ok',d:dl(by(P,'CONCLUIDO'),by(PV,'CONCLUIDO'),'up'),s:pc(by(P,'CONCLUIDO'),P.length)+' das saídas'}),
+    kpi('Manutenção externa',num(by(P,'EXTERNA')),{t:'ext',d:dl(by(P,'EXTERNA'),by(PV,'EXTERNA'),null),s:pc(by(P,'EXTERNA'),P.length)+' das saídas'}),
+    kpi('Sucata',num(by(P,'SUCATA')),{t:'scrap',d:dl(by(P,'SUCATA'),by(PV,'SUCATA'),null),s:pc(by(P,'SUCATA'),P.length)+' das saídas'}),
+    kpi('Cancelados',num(by(P,'CANCELADO')),{t:'bad',d:dl(by(P,'CANCELADO'),by(PV,'CANCELADO'),null),s:pc(by(P,'CANCELADO'),P.length)+' das saídas'}),
+    kpi('Na oficina agora',num(open.length),{t:old.length?'warn':'',d:`<div class="d ${open.length<st30?'pos':open.length>st30?'neg':''}">${open.length<st30?'▼':open.length>st30?'▲':'■'} ${st30} <span>há 30 dias</span></div>`,s:`${old.length} há mais de ${CFG.limite} dias`}),
+    kpi('Pausados / aguardando peça',num(trav),{t:trav?'warn':'ok',s:'travados na oficina'}),
+    kpi('Gasto em peças',brl(custo),{d:dl(custo,custoV,null),s:'equipamentos que saíram no período'}),
+    kpi('OS abertas',num(O.length),{d:dl(O.length,OV.length,null),s:`${lib} já liberadas`})
   ].join(''));
   set('insights',insights().map(x=>`<li class="${x.t}"><b>${esc(x.h)}</b>${esc(x.x)}</li>`).join(''));
   const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
-  const ent=series(A,i=>i.ini,ks,g),sai=series(A,i=>i.fimEf,ks,g),est=stockSeries(A,ks,g);
+  const e=series(A,i=>i.ent,ks,g),s=series(A,i=>i.fimEf,ks,g),est=stockSeries(A,ks,g);
   mk('cFlow',{type:'bar',data:{labels,datasets:[
-    {label:'Entradas',data:ent,backgroundColor:'#f59e0b',borderRadius:3,order:2},
-    {label:'Saídas',data:sai,backgroundColor:'#16a34a',borderRadius:3,order:2},
+    {label:'Entradas',data:e,backgroundColor:'#f59e0b',borderRadius:3,order:2},
+    {label:'Saídas',data:s,backgroundColor:'#16a34a',borderRadius:3,order:2},
     {type:'line',label:'Estoque na oficina (eixo direito)',data:est,borderColor:'#2563eb',backgroundColor:'#2563eb',yAxisID:'y2',tension:.25,pointRadius:ks.length>60?0:3,order:1}]},
     options:opts({y2:true,legend:true})});
-  const X=itemsIn('cls'),cc=CLS_ORDER.map(c=>X.filter(i=>i.cls===c).length);
-  mk('cStatus',{type:'doughnut',data:{labels:CLS_ORDER.map(c=>CLS[c].n),datasets:[{data:cc,backgroundColor:CLS_ORDER.map(c=>dim('cls',c,CLS[c].c)),borderWidth:0}]},options:dopts(cf('cls',clsByName))});
+  const X=itemsIn('cls');
+  mk('cStatus',{type:'doughnut',data:{labels:EXIT_ORDER.map(c=>CLS[c].n),datasets:[{data:EXIT_ORDER.map(c=>by(X,c)),backgroundColor:EXIT_ORDER.map(c=>dim('cls',c,CLS[c].c)),borderWidth:0}]},options:dopts(cf('cls',clsByName))});
   const XS=itemsIn('setor'),setores=uniq(XS.map(i=>i.setor));
-  mk('cSetor',{type:'bar',data:{labels:setores,datasets:CLS_ORDER.map(c=>({label:CLS[c].n,data:setores.map(s=>XS.filter(i=>i.setor===s&&i.cls===c).length),backgroundColor:CLS[c].c,borderRadius:2}))},
-    options:opts({stack:true,legend:true,onClick:cf('setor')})});
-  const XR=itemsIn('resp'),tr=topN(groupBy(XR,i=>i.resp),10,l=>l.length).reverse(),rl=tr.map(x=>x[0]);
-  mk('cResp',{type:'bar',data:{labels:rl,datasets:CLS_ORDER.map(c=>({label:CLS[c].n,data:tr.map(x=>x[2].filter(i=>i.cls===c).length),backgroundColor:rl.map(r=>dim('resp',r,CLS[c].c)),borderRadius:2}))},
-    options:opts({stack:true,horizontal:true,onClick:cf('resp')})});
-  const cs=series(P,refDate,ks,g,i=>i.valor);
-  mk('cCusto',{type:'bar',data:{labels,datasets:[{label:'Custo',data:cs,backgroundColor:'#2563eb',borderRadius:3}]},options:opts({money:true})});
-  const tm=seriesAvg(A.filter(i=>i.cls==='CONCLUIDO'),i=>i.fimEf,i=>i.dias,ks,g);
-  mk('cTmr',{type:'line',data:{labels,datasets:[{label:'Dias',data:tm,borderColor:'#7c3aed',backgroundColor:'#7c3aed33',fill:true,tension:.25,spanGaps:true,pointRadius:ks.length>60?0:3}]},options:opts({dec:true})});
+  mk('cSetor',{type:'bar',data:{labels:setores,datasets:EXIT_ORDER.map(c=>({label:CLS[c].n,data:setores.map(x=>XS.filter(i=>i.setor===x&&i.cls===c).length),backgroundColor:EXIT_ORDER.map?CLS[c].c:'#888',borderRadius:2}))},options:opts({stack:true,legend:true,onClick:cf('setor')})});
+  const XR=itemsIn('resp').filter(i=>i.resp!==NA),tr=topN(groupBy(XR,i=>i.resp),10,l=>l.length).reverse(),rl=tr.map(x=>x[0]);
+  mk('cResp',{type:'bar',data:{labels:rl,datasets:EXIT_ORDER.map(c=>({label:CLS[c].n,data:tr.map(x=>x[2].filter(i=>i.cls===c).length),backgroundColor:rl.map(r=>dim('resp',r,CLS[c].c)),borderRadius:2}))},options:opts({stack:true,horizontal:true,onClick:cf('resp')})});
+  mk('cCusto',{type:'bar',data:{labels,datasets:[{label:'Gasto',data:series(P,i=>i.fimEf,ks,g,i=>i.valor),backgroundColor:'#2563eb',borderRadius:3}]},options:opts({money:true})});
+  mk('cDestTempo',{type:'bar',data:{labels,datasets:EXIT_ORDER.map(c=>({label:CLS[c].n,data:series(A.filter(i=>i.cls===c),i=>i.fimEf,ks,g),backgroundColor:CLS[c].c,borderRadius:2}))},options:opts({stack:true,legend:true})});
   const dw=[0,0,0,0,0,0,0];A.forEach(i=>{if(i.cls==='CONCLUIDO'&&inR(i.fimEf,S.from,S.to))dw[new Date(i.fimEf).getDay()]++;});
   mk('cDow',{type:'bar',data:{labels:['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],datasets:[{label:'Concluídos',data:dw,backgroundColor:'#16a34a',borderRadius:3}]},options:opts()});
 };
 
 R.oficina=()=>{
   const A=S.A,t=today0();
-  const open=A.filter(i=>i.cls==='ABERTO'&&i.ini!=null).map(i=>({i,d:Math.max(0,dd(t,i.ini))})).sort((a,b)=>b.d-a.d);
+  const open=A.filter(i=>i.cls==='ABERTO'&&i.ent!=null).map(i=>({i,d:Math.max(0,dd(t,i.ent))})).sort((a,b)=>b.d-a.d);
   const old=open.filter(x=>x.d>CFG.limite);
   const cnt=(fn,a,b)=>A.reduce((n,i)=>{const d=fn(i);return n+(d!=null&&d>=a&&d<=b?1:0);},0);
-  const e7=cnt(i=>i.ini,ad(t,-6),t),s7=cnt(i=>i.fimEf,ad(t,-6),t),e30=cnt(i=>i.ini,ad(t,-29),t),s30=cnt(i=>i.fimEf,ad(t,-29),t);
+  const e7=cnt(i=>i.ent,ad(t,-6),t),s7=cnt(i=>i.fimEf,ad(t,-6),t),e30=cnt(i=>i.ent,ad(t,-29),t),s30=cnt(i=>i.fimEf,ad(t,-29),t);
+  const c=st=>open.filter(x=>N(x.i.status)===st).length;
   set('kOficina',[
-    kpi('Na oficina agora',num(open.length),{t:'warn',s:'com os filtros atuais (ignora o período)'}),
-    kpi('Idade média',open.length?num(avg(open.map(x=>x.d)),1)+' d':'—',{s:'dias desde o início'}),
+    kpi('Na oficina agora',num(open.length),{t:'warn',s:'ignora o período; respeita os demais filtros'}),
+    kpi('Na fila (não iniciados)',num(c('NAO INICIADO'))),
+    kpi('Em manutenção',num(c('EM MANUTENCAO')),{s:'sendo trabalhados'}),
+    kpi('Pausados',num(c('PAUSADO')),{t:c('PAUSADO')?'warn':'ok'}),
+    kpi('Aguardando peça',num(c('AGUARDANDO PECA')),{t:c('AGUARDANDO PECA')?'warn':'ok'}),
     kpi('Mais antigo',open.length?num(open[0].d)+' d':'—',{t:open.length&&open[0].d>CFG.limite?'bad':'',s:open.length?esc(open[0].i.pat):''}),
-    kpi(`Parados > ${CFG.limite} dias`,num(old.length),{t:old.length?'bad':'ok',s:pc(old.length,open.length)+' do estoque'}),
-    kpi('Entradas (7 dias)',num(e7),{s:`${num(e30)} em 30 dias`}),
-    kpi('Saídas (7 dias)',num(s7),{t:'ok',s:`${num(s30)} em 30 dias`}),
+    kpi(`Há mais de ${CFG.limite} dias`,num(old.length),{t:old.length?'bad':'ok',s:pc(old.length,open.length)+' do estoque'}),
+    kpi('Entradas / saídas (7 dias)',`${num(e7)} / ${num(s7)}`,{s:`30 dias: ${num(e30)} / ${num(s30)}`}),
     kpi('Saldo 30 dias',(e30-s30>0?'+':'')+num(e30-s30),{t:e30-s30>0?'warn':'ok',s:e30-s30>0?'entrou mais do que saiu':'saiu mais do que entrou'})
   ].join(''));
   const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
-  const ent=series(A,i=>i.ini,ks,g),sai=series(A,i=>i.fimEf,ks,g),saldo=ent.map((x,i)=>x-sai[i]);
-  mk('cSaldo',{type:'bar',data:{labels,datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>0?'#dc2626':'#16a34a'),borderRadius:3}]},options:Object.assign(opts(),{})});
+  const ent=series(A,i=>i.ent,ks,g),sai=series(A,i=>i.fimEf,ks,g),saldo=ent.map((x,i)=>x-sai[i]);
+  mk('cSaldo',{type:'bar',data:{labels,datasets:[{label:'Saldo',data:saldo,backgroundColor:saldo.map(v=>v>0?'#dc2626':'#16a34a'),borderRadius:3}]},options:opts()});
   const sm=groupBy(open.map(x=>x.i),i=>i.status),sl=[...sm.keys()];
-  mk('cAbStatus',{type:'doughnut',data:{labels:sl,datasets:[{data:sl.map(k=>sm.get(k).length),backgroundColor:sl.map((k,i)=>PAL[i%PAL.length]),borderWidth:0}]},options:dopts()});
+  mk('cAbStatus',{type:'doughnut',data:{labels:sl,datasets:[{data:sl.map(k=>sm.get(k).length),backgroundColor:sl.map((k,i)=>ST_OPEN_COLOR[k]||PAL[i%PAL.length]),borderWidth:0}]},options:dopts()});
   const setores=uniq(A.map(i=>i.setor));
   mk('cEstSetor',{type:'line',data:{labels,datasets:setores.map((s,j)=>({label:s,data:stockSeries(A.filter(i=>i.setor===s),ks,g),borderColor:PAL[j%PAL.length],backgroundColor:PAL[j%PAL.length],tension:.25,pointRadius:ks.length>60?0:3}))},options:opts({legend:true})});
   const edges=[[0,7,'0–7 d'],[8,15,'8–15 d'],[16,30,'16–30 d'],[31,60,'31–60 d'],[61,1e9,'> 60 d']];
   mk('cIdade',{type:'bar',data:{labels:edges.map(e=>e[2]),datasets:setores.map((s,j)=>({label:s,data:edges.map(e=>open.filter(x=>x.i.setor===s&&x.d>=e[0]&&x.d<=e[1]).length),backgroundColor:PAL[j%PAL.length],borderRadius:2}))},options:opts({stack:true,legend:true})});
   tbl('tbOficina',[
-    {t:'Dias parado',v:r=>r.d,n:1,cls:'num',f:r=>`<b style="color:${r.d>CFG.limite?'var(--bad)':'inherit'}">${num(r.d)}</b>`},
+    {t:'Dias na oficina',v:r=>r.d,n:1,cls:'num',f:r=>`<b style="color:${r.d>CFG.limite?'var(--bad)':'inherit'}">${num(r.d)}</b>`},
     {t:'Patrimônio',v:r=>r.i.pat,f:r=>`<b>${esc(r.i.pat)}</b>`},
     {t:'Equipamento',v:r=>r.i.desc,f:r=>`<div class="clip" title="${esc(r.i.desc)}">${esc(r.i.desc)}</div>`},
-    {t:'Situação',v:r=>r.i.status},{t:'Setor',v:r=>r.i.setor},{t:'Responsável',v:r=>r.i.resp},
-    {t:'Desde',v:r=>r.i.ini,d:1},{t:'OS',v:r=>/^\d+$/.test(r.i.osId)?+r.i.osId:r.i.osId},{t:'Obra',v:r=>r.i.os.obra},{t:'Valor até agora',v:r=>r.i.valor,m:1,cls:'num'}
+    {t:'Situação',v:r=>r.i.status,f:r=>badge(r.i)},{t:'Setor',v:r=>r.i.setor},{t:'Responsável',v:r=>r.i.resp},
+    {t:'Entrada',v:r=>r.i.ent,d:1},{t:'OS',v:r=>/^\d+$/.test(r.i.osId)?+r.i.osId:r.i.osId},{t:'Obra',v:r=>r.i.os.obra},{t:'Prioridade',v:r=>r.i.os.prio}
   ],open,{sort:0,dir:-1,onRow:r=>showItem(r.i),empty:'Nenhum equipamento na oficina com os filtros atuais. 🎉'});
-};
-
-function respStats(){
-  const P=itemsIn('resp'),A=itemsBase('resp'),m=new Map();
-  const g=r=>m.get(r)||(m.set(r,{resp:r,tot:0,conc:0,ext:0,suc:0,ab:0,dias:[],custo:0,set:new Map()}),m.get(r));
-  P.forEach(i=>{const s=g(i.resp);s.tot++;if(i.cls==='CONCLUIDO'){s.conc++;if(i.dias!=null)s.dias.push(i.dias);}else if(i.cls==='EXTERNA')s.ext++;else if(i.cls==='SUCATA')s.suc++;s.custo+=i.valor;s.set.set(i.setor,(s.set.get(i.setor)||0)+1);});
-  A.forEach(i=>{if(i.cls==='ABERTO')g(i.resp).ab++;});
-  const du=Math.max(1,diasUteis(S.from,S.to));
-  return [...m.values()].map(s=>Object.assign(s,{tmr:avg(s.dias),pdu:s.conc/du,setor:topN(s.set,1,x=>x)[0]?topN(s.set,1,x=>x)[0][0]:'—'}));
-}
-R.equipe=()=>{
-  const RS=respStats(),P=S.P,t=today0();
-  const sel=F.resp.size;
-  const base=RS.filter(r=>r.tot>0);
-  set('kEquipe',[
-    kpi('Responsáveis ativos',num(base.length),{s:'com equipamentos no período'}),
-    kpi('Média por pessoa',base.length?num(avg(base.map(r=>r.tot)),1):'—',{s:'equipamentos no período'}),
-    kpi('Líder em volume',base.length?esc(base.slice().sort((a,b)=>b.tot-a.tot)[0].resp.split(' ').slice(0,2).join(' ')):'—',{t:'ok',s:base.length?num(base.slice().sort((a,b)=>b.tot-a.tot)[0].tot)+' equipamentos':''}),
-    kpi('Menor tempo de reparo',base.filter(r=>r.tmr!=null).length?esc(base.filter(r=>r.tmr!=null).sort((a,b)=>a.tmr-b.tmr)[0].resp.split(' ').slice(0,2).join(' ')):'—',{s:base.filter(r=>r.tmr!=null).length?num(base.filter(r=>r.tmr!=null).sort((a,b)=>a.tmr-b.tmr)[0].tmr,1)+' dias':''}),
-    sel?kpi('Selecionados',num(sel),{t:'warn',s:'clique de novo no nome para remover'}):kpi('Dica','Clique',{s:'em um nome para filtrar'})
-  ].join(''));
-  tbl('tbEquipe',[
-    {t:'Responsável',v:r=>r.resp,f:r=>`<b>${esc(r.resp)}</b>`},{t:'Setor',v:r=>r.setor},
-    {t:'Equipamentos',v:r=>r.tot,n:1,cls:'num'},{t:'Concluídos',v:r=>r.conc,n:1,cls:'num'},{t:'Externos',v:r=>r.ext,n:1,cls:'num'},{t:'Sucata',v:r=>r.suc,n:1,cls:'num'},
-    {t:'Na oficina agora',v:r=>r.ab,n:1,cls:'num'},{t:'Tempo médio (d)',v:r=>r.tmr,n:1,dec:1,cls:'num'},{t:'Concl./dia útil',v:r=>r.pdu,n:1,dec:2,cls:'num'},
-    {t:'Custo peças',v:r=>r.custo,m:1,cls:'num'},{t:'Custo/equip.',v:r=>r.tot?r.custo/r.tot:null,m:1,cls:'num'}
-  ],RS.filter(r=>r.tot>0||r.ab>0),{sort:2,dir:-1,size:12,onRow:r=>toggle('resp',r.resp),sel:r=>F.resp.has(r.resp)});
-  const T=base.slice().sort((a,b)=>b.tot-a.tot).slice(0,15).reverse(),tl=T.map(r=>r.resp);
-  mk('cEqResp',{type:'bar',data:{labels:tl,datasets:[['conc','CONCLUIDO'],['ext','EXTERNA'],['suc','SUCATA']].map(([k,c])=>({label:CLS[c].n,data:T.map(r=>r[k]),backgroundColor:tl.map(x=>dim('resp',x,CLS[c].c)),borderRadius:2}))},options:opts({stack:true,horizontal:true,legend:true,onClick:cf('resp')})});
-  const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
-  const tp=base.slice().sort((a,b)=>b.tot-a.tot).slice(0,6);
-  const A=itemsBase('resp');
-  mk('cEqEvol',{type:'line',data:{labels,datasets:tp.map((r,j)=>({label:r.resp,data:series(A.filter(i=>i.resp===r.resp),i=>i.fimEf,ks,g),borderColor:PAL[j%PAL.length],backgroundColor:PAL[j%PAL.length],tension:.25,pointRadius:ks.length>60?0:2}))},options:opts({legend:true})});
-  const tm=base.filter(r=>r.tmr!=null).sort((a,b)=>a.tmr-b.tmr).slice(0,15).reverse();
-  mk('cEqTmr',{type:'bar',data:{labels:tm.map(r=>r.resp),datasets:[{label:'Dias',data:tm.map(r=>+r.tmr.toFixed(1)),backgroundColor:tm.map(r=>dim('resp',r.resp,'#7c3aed')),borderRadius:3}]},options:opts({horizontal:true,dec:true,onClick:cf('resp')})});
-  const cu=base.slice().sort((a,b)=>b.custo-a.custo).slice(0,15).reverse();
-  mk('cEqCusto',{type:'bar',data:{labels:cu.map(r=>r.resp),datasets:[{label:'Custo',data:cu.map(r=>r.custo),backgroundColor:cu.map(r=>dim('resp',r.resp,'#2563eb')),borderRadius:3}]},options:opts({horizontal:true,money:true,onClick:cf('resp')})});
-  $('#eqDetHint').style.display=sel?'none':'';
-  $('#tbEqDet').style.display=sel?'':'none';
-  if(sel){
-    $('#eqDetTitulo').textContent='Equipamentos de '+[...F.resp].join(', ')+' — '+fdate(S.from)+' a '+fdate(S.to);
-    tbl('tbEqDet',COLS_ITEM,P,{sort:6,dir:-1,onRow:showItem});
-  }else $('#eqDetTitulo').textContent='Equipamentos dos responsáveis selecionados';
 };
 
 R.equip=()=>{
   const P=S.P;
-  const pats=groupBy(P,i=>i.pat),reinc=[...pats.values()].filter(l=>l.length>1);
-  const tipos=groupBy(P,i=>i.tipo);
-  const C=P.filter(i=>i.cls==='CONCLUIDO'&&i.dias!=null);
+  const pats=groupBy(P,i=>i.pat),reinc=[...pats.values()].filter(l=>l.length>1),tipos=groupBy(P,i=>i.tipo);
   set('kEquip',[
-    kpi('Patrimônios distintos',num(pats.size),{s:`${num(P.length)} manutenções no período`}),
-    kpi('Reincidentes',num(reinc.length),{t:reinc.length?'warn':'ok',s:pc(reinc.length,pats.size)+' dos patrimônios (2+ vezes)'}),
+    kpi('Patrimônios distintos',num(pats.size),{s:`${num(P.length)} saídas no período`}),
+    kpi('Reincidentes',num(reinc.length),{t:reinc.length?'warn':'ok',s:pc(reinc.length,pats.size)+' dos patrimônios (2+ passagens)'}),
     kpi('Tipos de equipamento',num(tipos.size),{s:'1ª palavra da descrição'}),
-    kpi('Taxa de sucata',pc(P.filter(i=>i.cls==='SUCATA').length,P.length),{t:'scrap',s:'sobre o período'}),
-    kpi('Taxa de conserto externo',pc(P.filter(i=>i.cls==='EXTERNA').length,P.length),{t:'ext',s:'sobre o período'}),
-    kpi('Tempo médio de reparo',C.length?num(avg(C.map(i=>i.dias)),1)+' d':'—',{s:'concluídos'})
+    kpi('Taxa de sucata',pc(P.filter(i=>i.cls==='SUCATA').length,P.length),{t:'scrap',s:'sobre as saídas'}),
+    kpi('Taxa de conserto externo',pc(P.filter(i=>i.cls==='EXTERNA').length,P.length),{t:'ext',s:'sobre as saídas'}),
+    kpi('Taxa de cancelamento',pc(P.filter(i=>i.cls==='CANCELADO').length,P.length),{t:'bad',s:'sobre as saídas'})
   ].join(''));
   const X=itemsIn('tipo'),tg=topN(groupBy(X,i=>i.tipo),12,l=>l.length),totalX=X.length||1;
   let acc=0;const cum=tg.map(x=>{acc+=x[1];return +(acc/totalX*100).toFixed(1);});
@@ -780,111 +838,118 @@ R.equip=()=>{
     {label:'Equipamentos',data:tg.map(x=>x[1]),backgroundColor:tg.map(x=>dim('tipo',x[0],'#2563eb')),borderRadius:3,order:2},
     {type:'line',label:'% acumulado (eixo direito)',data:cum,borderColor:'#dc2626',backgroundColor:'#dc2626',yAxisID:'y2',tension:.2,order:1}]},options:opts({y2:true,legend:true,onClick:cf('tipo')})});
   const t10=tg.slice(0,10);
-  mk('cDestTipo',{type:'bar',data:{labels:t10.map(x=>x[0]),datasets:CLS_ORDER.map(c=>({label:CLS[c].n,data:t10.map(x=>x[1]?x[2].filter(i=>i.cls===c).length/x[1]*100:0),backgroundColor:CLS[c].c}))},options:opts({stack:true,horizontal:true,legend:true,pct:true,max:100})});
-  const rr=[...pats.entries()].map(([p,l])=>[p,l.length,l]).sort((a,b)=>b[1]-a[1]).slice(0,12).reverse();
-  mk('cReinc',{type:'bar',data:{labels:rr.map(x=>x[0]),datasets:[{label:'Manutenções',data:rr.map(x=>x[1]),backgroundColor:'#f59e0b',borderRadius:3}]},options:opts({horizontal:true})});
-  const tt=topN(groupBy(C,i=>i.tipo),12,l=>avg(l.map(i=>i.dias))).reverse();
-  mk('cTmrTipo',{type:'bar',data:{labels:tt.map(x=>x[0]),datasets:[{label:'Dias',data:tt.map(x=>+x[1].toFixed(1)),backgroundColor:'#7c3aed',borderRadius:3}]},options:opts({horizontal:true,dec:true})});
-  const rows=[...pats.entries()].map(([p,l])=>{const s=l.slice().sort((a,b)=>(b.ini||0)-(a.ini||0));return {pat:p,desc:s[0].desc,tipo:s[0].tipo,n:l.length,hist:(DATA.byPat.get(p)||[]).length,custo:sum(l,i=>i.valor),ult:s[0],items:l};});
+  mk('cDestTipo',{type:'bar',data:{labels:t10.map(x=>x[0]),datasets:EXIT_ORDER.map(c=>({label:CLS[c].n,data:t10.map(x=>x[1]?x[2].filter(i=>i.cls===c).length/x[1]*100:0),backgroundColor:CLS[c].c}))},options:opts({stack:true,horizontal:true,legend:true,pct:true,max:100})});
+  const rr=[...pats.entries()].map(([p,l])=>[p,l.length]).sort((a,b)=>b[1]-a[1]).slice(0,12).reverse();
+  mk('cReinc',{type:'bar',data:{labels:rr.map(x=>x[0]),datasets:[{label:'Passagens',data:rr.map(x=>x[1]),backgroundColor:'#f59e0b',borderRadius:3}]},options:opts({horizontal:true})});
+  const ob=topN(groupBy(itemsIn('obra'),i=>i.os.obra),10,l=>l.length).reverse();
+  mk('cEqObra',{type:'bar',data:{labels:ob.map(x=>x[0]),datasets:[{label:'Equipamentos',data:ob.map(x=>x[1]),backgroundColor:ob.map(x=>dim('obra',x[0],'#0891b2')),borderRadius:3}]},options:opts({horizontal:true,onClick:cf('obra')})});
+  const rows=[...pats.entries()].map(([p,l])=>{const s=l.slice().sort((a,b)=>(b.fimEf||0)-(a.fimEf||0));return {pat:p,desc:s[0].desc,tipo:s[0].tipo,n:l.length,hist:(DATA.byPat.get(p)||[]).length,custo:sum(l,i=>i.valor),ult:s[0]};});
   tbl('tbEquip',[
     {t:'Patrimônio',v:r=>r.pat,f:r=>`<b>${esc(r.pat)}</b>`},{t:'Equipamento',v:r=>r.desc,f:r=>`<div class="clip" title="${esc(r.desc)}">${esc(r.desc)}</div>`},{t:'Tipo',v:r=>r.tipo},
-    {t:'Vezes no período',v:r=>r.n,n:1,cls:'num'},{t:'Vezes no histórico',v:r=>r.hist,n:1,cls:'num'},{t:'Custo no período',v:r=>r.custo,m:1,cls:'num'},
-    {t:'Último status',v:r=>r.ult.status,f:r=>badge(r.ult)},{t:'Última entrada',v:r=>r.ult.ini,d:1},{t:'Responsável',v:r=>r.ult.resp},{t:'PDF',v:r=>r.ult.link?'sim':'',f:r=>pdfBtn(r.ult)}
+    {t:'Passagens no período',v:r=>r.n,n:1,cls:'num'},{t:'Passagens no histórico',v:r=>r.hist,n:1,cls:'num'},{t:'Gasto no período',v:r=>r.custo,m:1,cls:'num'},
+    {t:'Último destino',v:r=>r.ult.status,f:r=>badge(r.ult)},{t:'Última saída',v:r=>r.ult.fimEf,d:1},{t:'Responsável',v:r=>r.ult.resp},{t:'PDF',v:r=>r.ult.link?'sim':'',f:r=>pdfBtn(r.ult)}
   ],rows,{sort:3,dir:-1,onRow:r=>goConsulta(r.pat)});
 };
 
 R.custos=()=>{
   const P=S.P,PV=S.PV,total=sum(P,i=>i.valor),totalV=sum(PV,i=>i.valor);
   const com=P.filter(i=>i.valor>0),mx=P.slice().sort((a,b)=>b.valor-a.valor)[0];
-  const O=osIn(''),du=Math.max(1,dd(S.to,S.from)+1);
+  const du=Math.max(1,dd(S.to,S.from)+1),conc=P.filter(i=>i.cls==='CONCLUIDO');
   set('kCustos',[
-    kpi('Custo total em peças',brl(total),{d:dl(total,totalV,null),s:'itens do período'}),
-    kpi('Custo médio / equipamento',brl(P.length?total/P.length:0),{s:'todos os equipamentos'}),
-    kpi('Médio dos que tiveram gasto',brl(com.length?total/com.length:0),{s:`${num(com.length)} equipamentos com custo`}),
+    kpi('Gasto total em peças',brl(total),{d:dl(total,totalV,null),s:'equipamentos que saíram no período'}),
+    kpi('Médio por equipamento',brl(P.length?total/P.length:0),{s:'todas as saídas'}),
+    kpi('Médio dos concluídos',brl(conc.length?sum(conc,i=>i.valor)/conc.length:0),{s:`${num(conc.length)} concluídos`}),
+    kpi('Médio dos que tiveram gasto',brl(com.length?total/com.length:0),{s:`${num(com.length)} equipamentos`}),
     kpi('Sem nenhum gasto',pc(P.length-com.length,P.length),{s:`${num(P.length-com.length)} equipamentos`}),
     kpi('Maior gasto individual',mx?brl(mx.valor):'—',{t:'warn',s:mx?esc(mx.pat):''}),
-    kpi('Custo por dia',brl(total/du),{s:`em ${num(du)} dias`}),
-    kpi('Custo registrado nas OS',brl(sum(O,o=>o.custo)),{s:'coluna CUSTO_EM_PECAS (OS abertas no período)'})
+    kpi('Gasto por dia',brl(total/du),{s:`em ${num(du)} dias`})
   ].join(''));
   const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
-  const cs=series(P,refDate,ks,g,i=>i.valor);let acc=0;const cum=cs.map(v=>(acc+=v));
-  mk('cCustoTempo',{type:'bar',data:{labels,datasets:[{label:'Custo no período',data:cs,backgroundColor:'#2563eb',borderRadius:3,order:2},
+  const cs=series(P,i=>i.fimEf,ks,g,i=>i.valor);let acc=0;const cum=cs.map(v=>(acc+=v));
+  mk('cCustoTempo',{type:'bar',data:{labels,datasets:[{label:'Gasto no período',data:cs,backgroundColor:'#2563eb',borderRadius:3,order:2},
     {type:'line',label:'Acumulado (eixo direito)',data:cum,borderColor:'#dc2626',backgroundColor:'#dc2626',yAxisID:'y2',tension:.2,pointRadius:ks.length>60?0:3,order:1}]},options:opts({money:true,y2:true,y2money:true,legend:true})});
   const XS=itemsIn('setor'),sg=topN(groupBy(XS,i=>i.setor),12,l=>sum(l,i=>i.valor));
   mk('cCustoSetor',{type:'doughnut',data:{labels:sg.map(x=>x[0]),datasets:[{data:sg.map(x=>+x[1].toFixed(2)),backgroundColor:sg.map((x,j)=>dim('setor',x[0],PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('setor'))});
-  const bar=(id,key,skip,n)=>{const X=itemsIn(skip),tg=topN(groupBy(X,key),n,l=>sum(l,i=>i.valor)).reverse();
-    mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'Custo',data:tg.map(x=>+x[1].toFixed(2)),backgroundColor:tg.map(x=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:true,money:true,onClick:cf(skip)})});};
-  bar('cCustoResp',i=>i.resp,'resp',10);bar('cCustoTipo',i=>i.tipo,'tipo',10);bar('cCustoObra',i=>i.os.obra,'obra',10);
+  const bar=(id,key,skip,n,filt)=>{const X=itemsIn(skip).filter(filt||(()=>true)),tg=topN(groupBy(X,key),n,l=>sum(l,i=>i.valor)).reverse();
+    mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'Gasto',data:tg.map(x=>+x[1].toFixed(2)),backgroundColor:tg.map(x=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:true,money:true,onClick:cf(skip)})});};
+  bar('cCustoResp',i=>i.resp,'resp',10,i=>i.resp!==NA);bar('cCustoTipo',i=>i.tipo,'tipo',10);bar('cCustoObra',i=>i.os.obra,'obra',10);
   const fx=[[0,0,'R$ 0'],[0.01,100,'até 100'],[100.01,500,'100–500'],[500.01,1000,'500–1.000'],[1000.01,5000,'1.000–5.000'],[5000.01,1e12,'> 5.000']];
   mk('cCustoFaixa',{type:'bar',data:{labels:fx.map(f=>f[2]),datasets:[{label:'Equipamentos',data:fx.map(f=>P.filter(i=>i.valor>=f[0]&&i.valor<=f[1]).length),backgroundColor:'#0891b2',borderRadius:3}]},options:opts()});
   tbl('tbCaros',COLS_ITEM,P.filter(i=>i.valor>0),{sort:9,dir:-1,onRow:showItem,size:10});
 };
 
+const OS_ORDER=['ENVIAR P/ MANUTENÇÃO','AGUARDANDO MANUTENÇÃO','EM MANUTENÇÃO','OS LIBERADA'];
+const OS_COLOR={'ENVIAR P/ MANUTENÇÃO':'#94a3b8','AGUARDANDO MANUTENÇÃO':'#f59e0b','EM MANUTENÇÃO':'#2563eb','OS LIBERADA':'#16a34a'};
 function osInfo(o,t){
-  const fechada=o.fech!=null;
-  const lead=fechada&&o.ab!=null?Math.max(0,dd(o.fech,o.ab)):null,esp=o.rec!=null&&o.ab!=null?Math.max(0,dd(o.rec,o.ab)):null,exe=fechada&&o.rec!=null?Math.max(0,dd(o.fech,o.rec)):null;
+  const its=DATA.byOs.get(o.id)||[],lib=isLib(o);
+  let fd=o.fech;
+  if(fd==null&&lib){const f=its.map(i=>i.fimEf).filter(x=>x!=null);fd=f.length?Math.max(...f):null;}
   let prazo='Sem previsão';
-  if(o.prev!=null){prazo=fechada?(o.fech<=o.prev?'Concluída no prazo':'Concluída com atraso'):(t<=o.prev?'Aberta no prazo':'Aberta atrasada');}
-  const its=DATA.byOs.get(o.id)||[];
-  return {o,fechada,lead,esp,exe,prazo,its,custoIt:sum(its,i=>i.valor)};
+  if(o.prev!=null){
+    if(lib){if(fd!=null)prazo=fd<=o.prev?'Liberada no prazo':'Liberada com atraso';}
+    else prazo=t<=o.prev?'Aberta no prazo':'Aberta atrasada';
+  }
+  return {o,lib,fd,prazo,its,fin:its.filter(i=>i.cls!=='ABERTO').length,custoIt:sum(its,i=>i.valor)};
 }
 R.os=()=>{
   const t=today0(),O=osIn(''),OV=osIn('',S.pf,S.pt),ALL=osIn('',-Infinity,Infinity);
-  const X=O.map(o=>osInfo(o,t)),fe=X.filter(x=>x.fechada);
+  const X=O.map(o=>osInfo(o,t)),n=st=>X.filter(x=>x.o.status===st).length;
   const atras=X.filter(x=>x.prazo.includes('atras')).length;
-  const comP=X.filter(x=>x.prazo.startsWith('Concluída')),noP=comP.filter(x=>x.prazo==='Concluída no prazo').length;
+  const comP=X.filter(x=>x.prazo.startsWith('Liberada')),noP=comP.filter(x=>x.prazo==='Liberada no prazo').length;
+  const itT=sum(X,x=>x.its.length),itF=sum(X,x=>x.fin);
   set('kOs',[
     kpi('OS abertas no período',num(X.length),{d:dl(X.length,OV.length,null)}),
-    kpi('Já fechadas',num(fe.length),{t:'ok',s:pc(fe.length,X.length)}),
-    kpi('Ainda abertas',num(X.length-fe.length),{t:X.length-fe.length?'warn':'ok'}),
-    kpi('Com prazo estourado',num(atras),{t:atras?'bad':'ok',s:'concluídas com atraso + abertas vencidas'}),
-    kpi('% no prazo',comP.length?pc(noP,comP.length):'—',{t:comP.length&&noP/comP.length<0.7?'warn':'ok',s:`${comP.length} OS fechadas com previsão`}),
-    kpi('Tempo médio total',fe.length?num(avg(fe.filter(x=>x.lead!=null).map(x=>x.lead)),1)+' d':'—',{s:'abertura → fechamento'}),
-    kpi('Espera até receber',avg(X.filter(x=>x.esp!=null).map(x=>x.esp))==null?'—':num(avg(X.filter(x=>x.esp!=null).map(x=>x.esp)),1)+' d',{s:'abertura → recebimento'}),
-    kpi('Execução',avg(fe.filter(x=>x.exe!=null).map(x=>x.exe))==null?'—':num(avg(fe.filter(x=>x.exe!=null).map(x=>x.exe)),1)+' d',{s:'recebimento → fechamento'}),
-    kpi('Itens por OS',X.length?num(avg(X.map(x=>x.its.length)),1):'—'),
-    kpi('Custo dos itens das OS',brl(sum(X,x=>x.custoIt)))
+    kpi('Liberadas',num(n('OS LIBERADA')),{t:'ok',s:pc(n('OS LIBERADA'),X.length)}),
+    kpi('Em manutenção',num(n('EM MANUTENÇÃO')),{s:'sendo trabalhadas'}),
+    kpi('Aguardando manutenção',num(n('AGUARDANDO MANUTENÇÃO')),{t:n('AGUARDANDO MANUTENÇÃO')?'warn':'ok',s:'recebidas, ainda não iniciadas'}),
+    kpi('Com prazo estourado',num(atras),{t:atras?'bad':'ok',s:'liberadas com atraso + abertas vencidas'}),
+    kpi('% liberadas no prazo',comP.length?pc(noP,comP.length):'—',{t:comP.length&&noP/comP.length<0.7?'warn':'ok',s:`${comP.length} OS liberadas com previsão`}),
+    kpi('Equipamentos por OS',X.length?num(avg(X.map(x=>x.its.length)),1):'—',{s:`${num(itT)} equipamentos no total`}),
+    kpi('Progresso dos equipamentos',pc(itF,itT),{s:`${num(itF)} de ${num(itT)} já saíram`}),
+    kpi('Gasto em peças das OS',brl(sum(X,x=>x.custoIt)))
   ].join(''));
   const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
-  mk('cOsFluxo',{type:'bar',data:{labels,datasets:[{label:'Abertas',data:series(ALL,o=>o.ab,ks,g),backgroundColor:'#2563eb',borderRadius:3},{label:'Fechadas',data:series(ALL,o=>o.fech,ks,g),backgroundColor:'#16a34a',borderRadius:3}]},options:opts({legend:true})});
-  const pz=['Concluída no prazo','Concluída com atraso','Aberta no prazo','Aberta atrasada','Sem previsão'],pcol=['#16a34a','#dc2626','#2563eb','#f59e0b','#94a3b8'];
+  const XA=ALL.map(o=>osInfo(o,t));
+  mk('cOsFluxo',{type:'bar',data:{labels,datasets:[{label:'Abertas',data:series(XA,x=>x.o.ab,ks,g),backgroundColor:'#2563eb',borderRadius:3},{label:'Liberadas',data:series(XA,x=>x.lib?x.fd:null,ks,g),backgroundColor:'#16a34a',borderRadius:3}]},options:opts({legend:true})});
+  const pz=['Liberada no prazo','Liberada com atraso','Aberta no prazo','Aberta atrasada','Sem previsão'],pcol=['#16a34a','#dc2626','#2563eb','#f59e0b','#94a3b8'];
   mk('cOsPrazo',{type:'doughnut',data:{labels:pz,datasets:[{data:pz.map(p=>X.filter(x=>x.prazo===p).length),backgroundColor:pcol,borderWidth:0}]},options:dopts()});
-  const bar=(id,key,skip,n,horiz)=>{const tg=topN(groupBy(osIn(skip),key),n,l=>l.length);if(horiz)tg.reverse();
-    mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'OS',data:tg.map(x=>x[1]),backgroundColor:tg.map((x,j)=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:horiz,onClick:cf(skip)})});};
+  const bar=(id,key,skip,nn,horiz)=>{const tg=topN(groupBy(osIn(skip),key),nn,l=>l.length);if(horiz)tg.reverse();
+    mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'OS',data:tg.map(x=>x[1]),backgroundColor:tg.map(x=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:horiz,onClick:cf(skip)})});};
   bar('cOsPrio',o=>o.prio,'prio',6,false);bar('cOsSol',o=>o.sol,'sol',10,true);bar('cOsObra',o=>o.obra,'obra',10,true);
   const mg=topN(groupBy(osIn('man'),o=>o.man),6,l=>l.length);
   mk('cOsMan',{type:'doughnut',data:{labels:mg.map(x=>x[0]),datasets:[{data:mg.map(x=>x[1]),backgroundColor:mg.map((x,j)=>dim('man',x[0],PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('man'))});
-  const sg=topN(groupBy(X,x=>x.o.status),8,l=>l.length);
-  mk('cOsStatus',{type:'doughnut',data:{labels:sg.map(x=>x[0]),datasets:[{data:sg.map(x=>x[1]),backgroundColor:sg.map((x,j)=>PAL[j%PAL.length]),borderWidth:0}]},options:dopts()});
-  const pr=uniq(X.map(x=>x.o.prio));
-  mk('cOsLead',{type:'bar',data:{labels:pr,datasets:[
-    {label:'Espera até receber',data:pr.map(p=>+(avg(X.filter(x=>x.o.prio===p&&x.esp!=null).map(x=>x.esp))||0).toFixed(1)),backgroundColor:'#f59e0b'},
-    {label:'Execução',data:pr.map(p=>+(avg(X.filter(x=>x.o.prio===p&&x.exe!=null).map(x=>x.exe))||0).toFixed(1)),backgroundColor:'#16a34a'}]},options:opts({stack:true,legend:true,dec:true})});
+  const sts=uniq(X.map(x=>x.o.status)).sort((a,b)=>OS_ORDER.indexOf(a)-OS_ORDER.indexOf(b));
+  mk('cOsStatus',{type:'doughnut',data:{labels:sts,datasets:[{data:sts.map(s=>n(s)),backgroundColor:sts.map((s,j)=>OS_COLOR[s]||PAL[j%PAL.length]),borderWidth:0}]},options:dopts()});
+  const OSet=uniq(osIn('setor').map(o=>o.setor));
+  mk('cOsSetor',{type:'doughnut',data:{labels:OSet,datasets:[{data:OSet.map(s=>osIn('setor').filter(o=>o.setor===s).length),backgroundColor:OSet.map((s,j)=>dim('setor',s,PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('setor'))});
   tbl('tbOs',[
-    {t:'OS',v:x=>/^\d+$/.test(x.o.id)?+x.o.id:x.o.id,f:x=>`<b>${esc(x.o.id)}</b>`},{t:'Abertura',v:x=>x.o.ab,d:1},{t:'Recebida',v:x=>x.o.rec,d:1},{t:'Previsão',v:x=>x.o.prev,d:1},{t:'Fechamento',v:x=>x.o.fech,d:1},
+    {t:'OS',v:x=>/^\d+$/.test(x.o.id)?+x.o.id:x.o.id,f:x=>`<b>${esc(x.o.id)}</b>`},{t:'Abertura',v:x=>x.o.ab,d:1},{t:'Previsão',v:x=>x.o.prev,d:1},{t:'Liberação',v:x=>x.fd,d:1},
+    {t:'Situação',v:x=>x.o.status,f:x=>`<span class="pill">${esc(x.o.status)}</span>`},
     {t:'Prazo',v:x=>x.prazo,f:x=>`<span class="pill ${x.prazo.includes('atras')?'late':x.prazo.includes('no prazo')?'ok':''}">${esc(x.prazo)}</span>`},
-    {t:'Prioridade',v:x=>x.o.prio},{t:'Status',v:x=>x.o.status},{t:'Solicitante',v:x=>x.o.sol},{t:'Obra',v:x=>x.o.obra},{t:'Itens',v:x=>x.its.length,n:1,cls:'num'},{t:'Dias total',v:x=>x.lead,n:1,cls:'num'},{t:'Custo',v:x=>x.custoIt,m:1,cls:'num'}
+    {t:'Prioridade',v:x=>x.o.prio},{t:'Setor',v:x=>x.o.setor},{t:'Solicitante',v:x=>x.o.sol},{t:'Obra',v:x=>x.o.obra},{t:'Manutenção',v:x=>x.o.man},
+    {t:'Equipamentos',v:x=>x.its.length?x.fin/x.its.length:null,f:x=>x.its.length?`<span class="bar-prog"><i style="width:${Math.round(x.fin/x.its.length*100)}%"></i></span>${x.fin}/${x.its.length}`:'—'},
+    {t:'Gasto',v:x=>x.custoIt,m:1,cls:'num'}
   ],X,{sort:0,dir:-1,onRow:x=>showOS(x.o)});
 };
 
 function groupCard(p){
-  const l=(DATA.byPat.get(p)||[]).slice().sort((a,b)=>(b.ini||0)-(a.ini||0)),u=l[0];
-  const rows=l.map(i=>`<tr class="click" data-id="${esc(i.id)}"><td>${esc(i.osId)}</td><td>${fdate(i.ini)}</td><td>${fdate(i.fimEf)}</td><td>${badge(i)}</td><td>${esc(i.resp)}</td><td><div class="clip" title="${esc(i.ativ)}">${esc(i.ativ||'—')}</div></td><td class="num">${brl(i.valor)}</td><td>${pdfBtn(i)}</td></tr>`).join('');
-  return `<div class="eqcard"><h4>${esc(p)} — ${esc(u.desc)}</h4><div class="meta">${l.length} manutenção(ões) · ${brl(sum(l,i=>i.valor))} em peças · último status: ${esc(u.status)}</div>
-  <div class="tw"><table><thead><tr><th>OS</th><th>Início</th><th>Saída</th><th>Status</th><th>Responsável</th><th>Atividade</th><th class="num">Valor</th><th>Relatório</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  const l=(DATA.byPat.get(p)||[]).slice().sort((a,b)=>(b.ent||0)-(a.ent||0)),u=l[0];
+  const rows=l.map(i=>`<tr class="click" data-id="${esc(i.id)}"><td>${esc(i.osId)}</td><td>${fdate(i.ent)}</td><td>${fdate(i.fimEf)}</td><td>${badge(i)}</td><td>${esc(i.resp)}</td><td><div class="clip" title="${esc(i.ativ)}">${esc(i.ativ||'—')}</div></td><td class="num">${brl(i.valor)}</td><td>${pdfBtn(i)}</td></tr>`).join('');
+  return `<div class="eqcard"><h4>${esc(p)} — ${esc(u.desc)}</h4><div class="meta">${l.length} passagem(ns) pela oficina · ${brl(sum(l,i=>i.valor))} em peças · último status: ${esc(u.status)}</div>
+  <div class="tw"><table><thead><tr><th>OS</th><th>Entrada</th><th>Saída</th><th>Status</th><th>Responsável</th><th>Atividade</th><th class="num">Valor</th><th>Relatório</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 R.consulta=()=>{
-  const q=N($('#qBusca').value),box=$('#qRes');
+  const raw=$('#qBusca').value,q=N(raw),box=$('#qRes');
   if(!q){
     const rec=DATA.items.filter(i=>i.link).sort((a,b)=>(b.fimEf||0)-(a.fimEf||0)).slice(0,10);
     box.innerHTML='<h4 style="margin:6px 0">Últimos relatórios gerados</h4><div id="tbUlt"></div>';
     tbl('tbUlt',COLS_ITEM,rec,{search:false,onRow:showItem,size:10});return;
   }
-  const hit=DATA.items.filter(i=>N(i.pat).includes(q)||N(i.desc).includes(q)||i.osId===$('#qBusca').value.trim()||N(i.ativ).includes(q));
+  const hit=DATA.items.filter(i=>N(i.pat).includes(q)||N(i.desc).includes(q)||i.osId===raw.trim()||N(i.ativ).includes(q));
   const pats=uniq(hit.map(i=>i.pat));
   if(!pats.length){box.innerHTML='<p class="hint">Nada encontrado. Tente apenas uma parte do patrimônio.</p>';return;}
   const shown=pats.slice(0,25);
-  box.innerHTML=`<p class="hint">${pats.length} patrimônio(s) encontrado(s)${pats.length>shown.length?` — mostrando os 25 primeiros, refine a busca`:''}.</p>`+shown.map(groupCard).join('');
+  box.innerHTML=`<p class="hint">${pats.length} patrimônio(s) encontrado(s)${pats.length>shown.length?' — mostrando os 25 primeiros, refine a busca':''}.</p>`+shown.map(groupCard).join('');
 };
 
 R.dados=()=>{
@@ -893,14 +958,15 @@ R.dados=()=>{
   const cur=DATA.quality.find(x=>x.k===sel);
   $('#tbQual').style.display=cur?'':'none';
   if(cur)tbl('tbQual',COLS_ITEM,cur.items,{onRow:showItem,size:10});
-  tbl('tbDados',COLS_ITEM.slice(0,10).concat([{t:'Atividade',v:i=>i.ativ,f:i=>`<div class="clip" title="${esc(i.ativ)}">${esc(i.ativ)}</div>`},COLS_ITEM[10]]),S.P,{sort:6,dir:-1,onRow:showItem,size:20});
+  const rows=S.A.filter(i=>inR(i.ent,S.from,S.to)||inR(i.fimEf,S.from,S.to));
+  tbl('tbDados',COLS_ITEM.slice(0,10).concat([{t:'Atividade',v:i=>i.ativ,f:i=>`<div class="clip" title="${esc(i.ativ)}">${esc(i.ativ)}</div>`},COLS_ITEM[10]]),rows,{sort:8,dir:-1,onRow:showItem,size:20});
 };
 
 /* ====================== controle de interface ====================== */
 function render(){
   if(!DATA)return;
   compute();
-  $('#foot').textContent=`${num(DATA.items.length)} equipamentos e ${num(DATA.os.length)} OS carregados · período ${fdate(S.from)} a ${fdate(S.to)} · ${num(S.P.length)} equipamentos no período`;
+  $('#foot').textContent=`${num(DATA.items.length)} equipamentos e ${num(DATA.os.length)} OS carregados · período ${fdate(S.from)} a ${fdate(S.to)} · ${num(S.P.length)} saídas e ${num(entIn('',S.from,S.to).length)} entradas no período`;
   try{R[activeTab]();}catch(e){console.error(e);}
 }
 function setTab(t){
@@ -924,7 +990,7 @@ function preset(p){
 function sync(){
   $('#dFrom').value=toISO(F.from);$('#dTo').value=toISO(F.to);
   $$('#presets button').forEach(b=>b.classList.toggle('on',b.dataset.p===F.preset));
-  $('#selRef').value=F.ref;$('#selGran').value=F.gran;
+  $('#selGran').value=F.gran;
   $$('#msels details').forEach(d=>{
     const k=d.dataset.k;d.querySelector('.n').textContent=F[k].size?'('+F[k].size+')':'';
     d.querySelectorAll('.opts input').forEach(c=>c.checked=F[k].has(c.value));
@@ -956,7 +1022,7 @@ function setBadge(){
 }
 function afterLoad(first){
   buildMS();
-  if(first){preset(F.preset);compute();if(!S.P.length){preset('tudo');}}
+  if(first){preset(F.preset);compute();if(!S.P.length&&!entIn('',S.from,S.to).length){preset('tudo');}}
   sync();setBadge();render();
 }
 async function load(first){
@@ -983,7 +1049,7 @@ function openCfg(){
   <div style="display:grid;gap:10px">
    <label class="fld">URL do Web App (termina em /exec)<input type="text" id="cfUrl" value="${esc(CFG.url)}" placeholder="https://script.google.com/macros/s/.../exec"></label>
    <label class="fld">Senha (token)<input type="password" id="cfTok" value="${esc(CFG.token)}"></label>
-   <label class="fld">Limite de dias para considerar “parado” na oficina<input type="number" id="cfLim" min="1" value="${CFG.limite}"></label>
+   <label class="fld">Limite de dias para considerar um equipamento “parado” na oficina<input type="number" id="cfLim" min="1" value="${CFG.limite}"></label>
    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cfDemo" ${CFG.demo?'checked':''}> Forçar modo demonstração (dados fictícios)</label>
    <div><button class="btn pri" id="cfSave">Salvar e carregar</button></div>
   </div>`);
@@ -1000,7 +1066,6 @@ function init(){
   $('#presets').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;preset(b.dataset.p);sync();render();});
   const dchg=()=>{const a=pdate($('#dFrom').value),b=pdate($('#dTo').value);if(a==null||b==null)return;F.from=Math.min(a,b);F.to=Math.max(a,b);F.preset='';sync();render();};
   $('#dFrom').addEventListener('change',dchg);$('#dTo').addEventListener('change',dchg);
-  $('#selRef').addEventListener('change',e=>{F.ref=e.target.value;render();});
   $('#selGran').addEventListener('change',e=>{F.gran=e.target.value;render();});
   $('#chips').addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b){F[b.dataset.k].clear();sync();render();}});
   $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.t);});
@@ -1016,7 +1081,7 @@ function init(){
   $('#qRes').addEventListener('click',e=>{const tr=e.target.closest('tr[data-id]');if(tr&&!e.target.closest('a')){const it=DATA.items.find(i=>i.id===tr.dataset.id);if(it)showItem(it);}});
   $('#t-dados').addEventListener('click',e=>{const c=e.target.closest('.qcard');if(c){TS._q=TS._q===c.dataset.q?'':c.dataset.q;R.dados();}});
   setInterval(()=>{if(!SRC.demo&&!document.hidden&&SRC.when&&Date.now()-SRC.when.getTime()>10*60000)load(false);},60000);
-  const h=(location.hash||'').replace('#','');if(['geral','oficina','equipe','equip','custos','os','consulta','dados'].includes(h))activeTab=h;
+  const h=(location.hash||'').replace('#','');if(['equipe','geral','oficina','equip','custos','os','consulta','dados'].includes(h))activeTab=h;
   $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===activeTab));
   $$('.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+activeTab));
   load(true);

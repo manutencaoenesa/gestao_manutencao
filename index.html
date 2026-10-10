@@ -160,7 +160,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
   <div class="card c6"><h3>Produtividade nos dias trabalhados <small>média de concluídos por dia com entrega — comparar só dentro do mesmo setor</small></h3><div class="cv tall"><canvas id="cEqPdu"></canvas></div></div>
   <div class="card c12"><h3>Mapa de produção <small>conclusões por colaborador em cada período — a intensidade da cor é calculada separadamente em cada setor</small></h3><div class="heat" id="heatBox"></div></div>
   <div class="card c12"><h3>Evolução das conclusões <small>3 principais de cada setor</small></h3><div class="cv tall"><canvas id="cEqEvol"></canvas></div></div>
-  <div class="card c12"><h3 id="eqDetTitulo">Equipamentos dos colaboradores selecionados</h3><div id="eqDetHint" class="hint">Marque um ou mais colaboradores (na tabela acima ou no filtro “Responsável”) para ver aqui cada equipamento que concluíram no período.</div><div id="tbEqDet"></div></div>
+  <div class="card c12"><h3 id="eqDetTitulo">Equipamentos dos colaboradores selecionados</h3><div id="eqDetHint" class="hint">Marque um ou mais colaboradores (na tabela acima ou no filtro “Responsável”) para ver aqui cada equipamento deles que deu saída da oficina no período (concluído, externo, sucata ou cancelado — o status aparece na tabela).</div><div id="tbEqDet"></div></div>
  </div>
 </section>
 
@@ -496,7 +496,7 @@ function stockSeries(list,ks,g){return ks.map(k=>{const e=Math.min(ad(bNext(k,g)
 function groupBy(list,kf){const m=new Map();list.forEach(i=>{const k=kf(i);(m.get(k)||m.set(k,[]).get(k)).push(i);});return m;}
 function diasUteis(a,b){let n=0;for(let t=a,c=0;t<=b&&c<4000;t=ad(t,1),c++){const w=new Date(t).getDay();if(w>0&&w<6)n++;}return n;}
 const lab=(k,v)=>k==='cls'?(CLS[v]?CLS[v].n:v):v;
-const short=n=>String(n).split(' ').slice(0,2).join(' ');
+const short=n=>String(n).split(' ').filter(w=>!['DE','DA','DO','DAS','DOS','E'].includes(w)).slice(0,2).join(' ');
 
 /* ====================== setores (comparar só dentro do mesmo setor) ====================== */
 function secOf(r){return (DATA&&DATA.secMap&&DATA.secMap.get(r))||'—';}
@@ -838,7 +838,7 @@ R.equipe=()=>{
   $('#tbEqDet').style.display=sel?'':'none';
   if(sel){
     $('#eqDetTitulo').textContent='Equipamentos de '+[...F.resp].map(short).join(', ')+' — saídas de '+fdate(S.from)+' a '+fdate(S.to);
-    tbl('tbEqDet',COLS_ITEM,P,{sort:8,dir:-1,onRow:showItem});
+    tbl('tbEqDet',COLS_ITEM,S.P,{sort:8,dir:-1,onRow:showItem});
   }else $('#eqDetTitulo').textContent='Equipamentos dos colaboradores selecionados';
 };
 

@@ -44,6 +44,7 @@ details.ms .n{color:var(--brand)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:6px}
 .chip{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 10px;font-size:12px;display:flex;gap:6px;align-items:center}
 .chip button{border:none;background:var(--line);border-radius:50%;width:18px;height:18px;cursor:pointer;line-height:1;padding:0}
+.seg{display:inline-flex;margin-left:10px;vertical-align:middle}.seg button{background:var(--soft);border:1px solid var(--line);padding:3px 12px;cursor:pointer;font-size:12px;color:var(--ink)}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0;border-left:none}.seg button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .rule{font-size:11px;color:var(--mut);padding:0 0 6px}
 nav#tabs{display:flex;gap:2px;overflow-x:auto;border-top:1px solid var(--line)}
 nav#tabs button{background:none;border:none;padding:10px 14px;cursor:pointer;color:var(--mut);border-bottom:3px solid transparent;white-space:nowrap;font-weight:600}
@@ -150,6 +151,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
  <div class="kpis" id="kEquipe"></div>
  <div class="grid">
   <div class="card c12"><h3>Ranking de colaboradores <small>clique no nome para filtrar todo o painel — pode marcar vários</small></h3><div id="tbEquipe"></div></div>
+  <div class="card c12"><h3>Conclusões por colaborador — semana a semana / mês a mês <span class="seg"><button data-evo="week">Semanas</button><button data-evo="month">Meses</button></span></h3><p class="hint">Colunas empilhadas: cada cor é um colaborador (clique na barra para filtrar). Janela fixa — 16 semanas ou 12 meses — independente das datas escolhidas no topo; respeita os demais filtros. O último período ainda está em andamento.</p><div class="cv tall"><canvas id="cEvoEquipe"></canvas></div></div>
   <div class="card c6"><h3>Equipamentos por colaborador e destino <small>no período</small></h3><div class="cv tall"><canvas id="cEqResp"></canvas></div></div>
   <div class="card c6"><h3>Evolução das conclusões <small>principais colaboradores</small></h3><div class="cv tall"><canvas id="cEqEvol"></canvas></div></div>
   <div class="card c12"><h3>Mapa de produção <small>conclusões por colaborador em cada período — quanto mais escuro, mais equipamentos</small></h3><div class="heat" id="heatBox"></div></div>
@@ -165,6 +167,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
  <div class="kpis" id="kGeral"></div>
  <div class="grid">
   <div class="card c12"><h3>Radar do gestor <small>alertas automáticos — não dependem do período selecionado</small></h3><ul class="ins-list" id="insights"></ul></div>
+  <div class="card c12"><h3>Entradas e saídas — semana a semana / mês a mês <span class="seg"><button data-evo="week">Semanas</button><button data-evo="month">Meses</button></span></h3><p class="hint">Janela fixa — 16 semanas ou 12 meses — independente das datas escolhidas no topo; respeita os demais filtros. O último período ainda está em andamento.</p><div class="cv tall"><canvas id="cEvoGeral"></canvas></div></div>
   <div class="card c8"><h3>Entradas × saídas da oficina e estoque <small>mostra se a oficina esvazia porque entra menos ou porque sai mais</small></h3><div class="cv tall"><canvas id="cFlow"></canvas></div></div>
   <div class="card c4"><h3>Destino dos equipamentos <small>clique para filtrar</small></h3><div class="cv tall"><canvas id="cStatus"></canvas></div></div>
   <div class="card c4"><h3>Saídas por setor <small>clique para filtrar</small></h3><div class="cv"><canvas id="cSetor"></canvas></div></div>
@@ -693,6 +696,38 @@ function heatHtml(RS){
 }
 
 /* ====================== renderizadores por aba ====================== */
+/* ====================== evolução semana a semana / mês a mês ====================== */
+const EVO={mode:LS.get('mp_evo','month')==='week'?'week':'month'};
+function evoRange(){
+  const t=today0(),m=EVO.mode,n=m==='month'?12:16,d=new Date(t);
+  const from=m==='month'?new Date(d.getFullYear(),d.getMonth()-(n-1),1).getTime():ad(bKey(t,'week'),-7*(n-1));
+  return {g:m,from,to:t,ks:buckets(from,t,m)};
+}
+function seriesR(list,dfn,ks,g,from,to){
+  const idx=new Map(ks.map((k,i)=>[k,i])),arr=ks.map(()=>0);
+  list.forEach(it=>{const t=dfn(it);if(t==null||t<from||t>to)return;const i=idx.get(bKey(t,g));if(i!=null)arr[i]++;});return arr;
+}
+function evoLabels(ks,g){const l=ks.map(k=>bLabel(k,g));l[l.length-1]+=' (atual)';return l;}
+function evoBtns(){$$('[data-evo]').forEach(b=>b.classList.toggle('on',b.dataset.evo===EVO.mode));}
+function evoGeral(){
+  evoBtns();
+  const {g,from,to,ks}=evoRange(),A=itemsBase('');
+  const conc=A.filter(i=>i.cls==='CONCLUIDO'),outras=A.filter(i=>i.cls!=='ABERTO'&&i.cls!=='CONCLUIDO');
+  mk('cEvoGeral',{type:'bar',data:{labels:evoLabels(ks,g),datasets:[
+    {label:'Entradas na oficina',data:seriesR(A,i=>i.ent,ks,g,from,to),backgroundColor:'#f59e0b',borderRadius:3},
+    {label:'Concluídos',data:seriesR(conc,i=>i.fimEf,ks,g,from,to),backgroundColor:'#16a34a',borderRadius:3},
+    {label:'Outras saídas (externa, sucata, cancelado)',data:seriesR(outras,i=>i.fimEf,ks,g,from,to),backgroundColor:'#64748b',borderRadius:3}]},
+    options:opts({legend:true})});
+}
+function evoEquipe(){
+  evoBtns();
+  const {g,from,to,ks}=evoRange(),A=itemsBase('resp').filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA&&inR(i.fimEf,from,to));
+  const tops=topN(groupBy(A,i=>i.resp),8,l=>l.length),names=tops.map(x=>x[0]),rest=A.filter(i=>!names.includes(i.resp));
+  const ds=tops.map((x,j)=>({label:x[0],data:seriesR(x[2],i=>i.fimEf,ks,g,from,to),backgroundColor:dim('resp',x[0],PAL[j%PAL.length]),borderRadius:2}));
+  if(rest.length)ds.push({label:'Outros',data:seriesR(rest,i=>i.fimEf,ks,g,from,to),backgroundColor:'#94a3b8',borderRadius:2});
+  mk('cEvoEquipe',{type:'bar',data:{labels:evoLabels(ks,g),datasets:ds},options:opts({stack:true,legend:true,onClick:(e,els,ch)=>{if(!els||!els.length)return;const n=ch.data.datasets[els[0].datasetIndex].label;if(n!=='Outros')toggle('resp',n);}})});
+}
+
 const R={};
 R.equipe=()=>{
   const RS=respStats(),P=itemsIn('resp'),sel=F.resp.size;
@@ -729,6 +764,7 @@ R.equipe=()=>{
   const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
   const tp=base.slice().sort((a,b)=>b.conc-a.conc).slice(0,6),A=itemsBase('resp');
   mk('cEqEvol',{type:'line',data:{labels,datasets:tp.map((r,j)=>({label:short(r.resp),data:series(A.filter(i=>i.resp===r.resp&&i.cls==='CONCLUIDO'),i=>i.fimEf,ks,g),borderColor:PAL[j%PAL.length],backgroundColor:PAL[j%PAL.length],tension:.25,pointRadius:ks.length>60?0:2}))},options:opts({legend:true})});
+  evoEquipe();
   set('heatBox',heatHtml(RS));
   const pd=base.filter(r=>r.conc>0).sort((a,b)=>a.pdu-b.pdu).slice(-15);
   mk('cEqPdu',{type:'bar',data:{labels:pd.map(r=>r.resp),datasets:[{label:'Concluídos por dia útil',data:pd.map(r=>+r.pdu.toFixed(2)),backgroundColor:pd.map(r=>dim('resp',r.resp,'#16a34a')),borderRadius:3}]},options:opts({horizontal:true,dec:true,onClick:cf('resp')})});
@@ -765,6 +801,7 @@ R.geral=()=>{
     kpi('Gasto em peças',brl(custo),{d:dl(custo,custoV,null),s:'equipamentos que saíram no período'}),
     kpi('OS abertas',num(O.length),{d:dl(O.length,OV.length,null),s:`${lib} já liberadas`})
   ].join(''));
+  evoGeral();
   set('insights',insights().map(x=>`<li class="${x.t}"><b>${esc(x.h)}</b>${esc(x.x)}</li>`).join(''));
   const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
   const e=series(A,i=>i.ent,ks,g),s=series(A,i=>i.fimEf,ks,g),est=stockSeries(A,ks,g);
@@ -1069,6 +1106,7 @@ function init(){
   $('#selGran').addEventListener('change',e=>{F.gran=e.target.value;render();});
   $('#chips').addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b){F[b.dataset.k].clear();sync();render();}});
   $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.t);});
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-evo]');if(!b)return;EVO.mode=b.dataset.evo;LS.set('mp_evo',EVO.mode);render();});
   $('#btnRefresh').addEventListener('click',()=>load(false));
   $('#btnPrint').addEventListener('click',()=>window.print());
   $('#btnCfg').addEventListener('click',openCfg);

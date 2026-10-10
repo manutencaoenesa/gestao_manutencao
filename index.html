@@ -502,7 +502,7 @@ function toggle(k,v){if(F[k].has(v))F[k].delete(v);else F[k].add(v);sync();rende
 const cf=(k,map)=>(e,els,ch)=>{if(!els||!els.length)return;const l=ch.data.labels[els[0].index];toggle(k,map?map(l):l);};
 const clsByName=n=>CLS_ORDER.find(c=>CLS[c].n===n)||n;
 function dim(k,label,color){return(F[k].size&&!F[k].has(label))?color+'55':color;}
-function top(m,n,vf){return [...m.entries()].map(([k,l])=>[k,vf(l),l]).sort((a,b)=>b[1]-a[1]).slice(0,n);}
+function topN(m,n,vf){return [...m.entries()].map(([k,l])=>[k,vf(l),l]).sort((a,b)=>b[1]-a[1]).slice(0,n);}
 
 /* ====================== tabelas ====================== */
 const TS={};
@@ -622,7 +622,7 @@ function insights(){
   const old=open.filter(x=>x.d>CFG.limite);
   if(old.length)out.push({t:'bad',h:`${old.length} parado(s) há mais de ${CFG.limite} dias`,x:`Mais antigo: ${old[0].i.pat} (${old[0].i.resp}) há ${old[0].d} dias. Veja a aba “Oficina agora”.`});
   else if(open.length)out.push({t:'ok',h:'Nada parado além do limite',x:`Nenhum equipamento está há mais de ${CFG.limite} dias na oficina.`});
-  const gs=top(groupBy(open.map(x=>x.i),i=>i.setor),1,l=>l.length)[0];
+  const gs=topN(groupBy(open.map(x=>x.i),i=>i.setor),1,l=>l.length)[0];
   if(gs)out.push({t:'info',h:'Setor com mais equipamentos na oficina',x:`${gs[0]}: ${gs[1]} de ${open.length}.`});
   const rec14=ad(t,-14),ativos=new Map(open.map(x=>[x.i.resp,1]));
   const feitos=new Set(A.filter(i=>i.fimEf!=null&&i.fimEf>=rec14).map(i=>i.resp));
@@ -674,7 +674,7 @@ R.geral=()=>{
   const XS=itemsIn('setor'),setores=uniq(XS.map(i=>i.setor));
   mk('cSetor',{type:'bar',data:{labels:setores,datasets:CLS_ORDER.map(c=>({label:CLS[c].n,data:setores.map(s=>XS.filter(i=>i.setor===s&&i.cls===c).length),backgroundColor:CLS[c].c,borderRadius:2}))},
     options:opts({stack:true,legend:true,onClick:cf('setor')})});
-  const XR=itemsIn('resp'),tr=top(groupBy(XR,i=>i.resp),10,l=>l.length).reverse(),rl=tr.map(x=>x[0]);
+  const XR=itemsIn('resp'),tr=topN(groupBy(XR,i=>i.resp),10,l=>l.length).reverse(),rl=tr.map(x=>x[0]);
   mk('cResp',{type:'bar',data:{labels:rl,datasets:CLS_ORDER.map(c=>({label:CLS[c].n,data:tr.map(x=>x[2].filter(i=>i.cls===c).length),backgroundColor:rl.map(r=>dim('resp',r,CLS[c].c)),borderRadius:2}))},
     options:opts({stack:true,horizontal:true,onClick:cf('resp')})});
   const cs=series(P,refDate,ks,g,i=>i.valor);
@@ -724,7 +724,7 @@ function respStats(){
   P.forEach(i=>{const s=g(i.resp);s.tot++;if(i.cls==='CONCLUIDO'){s.conc++;if(i.dias!=null)s.dias.push(i.dias);}else if(i.cls==='EXTERNA')s.ext++;else if(i.cls==='SUCATA')s.suc++;s.custo+=i.valor;s.set.set(i.setor,(s.set.get(i.setor)||0)+1);});
   A.forEach(i=>{if(i.cls==='ABERTO')g(i.resp).ab++;});
   const du=Math.max(1,diasUteis(S.from,S.to));
-  return [...m.values()].map(s=>Object.assign(s,{tmr:avg(s.dias),pdu:s.conc/du,setor:top(s.set,1,x=>x)[0]?top(s.set,1,x=>x)[0][0]:'—'}));
+  return [...m.values()].map(s=>Object.assign(s,{tmr:avg(s.dias),pdu:s.conc/du,setor:topN(s.set,1,x=>x)[0]?topN(s.set,1,x=>x)[0][0]:'—'}));
 }
 R.equipe=()=>{
   const RS=respStats(),P=S.P,t=today0();
@@ -774,7 +774,7 @@ R.equip=()=>{
     kpi('Taxa de conserto externo',pc(P.filter(i=>i.cls==='EXTERNA').length,P.length),{t:'ext',s:'sobre o período'}),
     kpi('Tempo médio de reparo',C.length?num(avg(C.map(i=>i.dias)),1)+' d':'—',{s:'concluídos'})
   ].join(''));
-  const X=itemsIn('tipo'),tg=top(groupBy(X,i=>i.tipo),12,l=>l.length),totalX=X.length||1;
+  const X=itemsIn('tipo'),tg=topN(groupBy(X,i=>i.tipo),12,l=>l.length),totalX=X.length||1;
   let acc=0;const cum=tg.map(x=>{acc+=x[1];return +(acc/totalX*100).toFixed(1);});
   mk('cPareto',{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[
     {label:'Equipamentos',data:tg.map(x=>x[1]),backgroundColor:tg.map(x=>dim('tipo',x[0],'#2563eb')),borderRadius:3,order:2},
@@ -783,7 +783,7 @@ R.equip=()=>{
   mk('cDestTipo',{type:'bar',data:{labels:t10.map(x=>x[0]),datasets:CLS_ORDER.map(c=>({label:CLS[c].n,data:t10.map(x=>x[1]?x[2].filter(i=>i.cls===c).length/x[1]*100:0),backgroundColor:CLS[c].c}))},options:opts({stack:true,horizontal:true,legend:true,pct:true,max:100})});
   const rr=[...pats.entries()].map(([p,l])=>[p,l.length,l]).sort((a,b)=>b[1]-a[1]).slice(0,12).reverse();
   mk('cReinc',{type:'bar',data:{labels:rr.map(x=>x[0]),datasets:[{label:'Manutenções',data:rr.map(x=>x[1]),backgroundColor:'#f59e0b',borderRadius:3}]},options:opts({horizontal:true})});
-  const tt=top(groupBy(C,i=>i.tipo),12,l=>avg(l.map(i=>i.dias))).reverse();
+  const tt=topN(groupBy(C,i=>i.tipo),12,l=>avg(l.map(i=>i.dias))).reverse();
   mk('cTmrTipo',{type:'bar',data:{labels:tt.map(x=>x[0]),datasets:[{label:'Dias',data:tt.map(x=>+x[1].toFixed(1)),backgroundColor:'#7c3aed',borderRadius:3}]},options:opts({horizontal:true,dec:true})});
   const rows=[...pats.entries()].map(([p,l])=>{const s=l.slice().sort((a,b)=>(b.ini||0)-(a.ini||0));return {pat:p,desc:s[0].desc,tipo:s[0].tipo,n:l.length,hist:(DATA.byPat.get(p)||[]).length,custo:sum(l,i=>i.valor),ult:s[0],items:l};});
   tbl('tbEquip',[
@@ -810,9 +810,9 @@ R.custos=()=>{
   const cs=series(P,refDate,ks,g,i=>i.valor);let acc=0;const cum=cs.map(v=>(acc+=v));
   mk('cCustoTempo',{type:'bar',data:{labels,datasets:[{label:'Custo no período',data:cs,backgroundColor:'#2563eb',borderRadius:3,order:2},
     {type:'line',label:'Acumulado (eixo direito)',data:cum,borderColor:'#dc2626',backgroundColor:'#dc2626',yAxisID:'y2',tension:.2,pointRadius:ks.length>60?0:3,order:1}]},options:opts({money:true,y2:true,y2money:true,legend:true})});
-  const XS=itemsIn('setor'),sg=top(groupBy(XS,i=>i.setor),12,l=>sum(l,i=>i.valor));
+  const XS=itemsIn('setor'),sg=topN(groupBy(XS,i=>i.setor),12,l=>sum(l,i=>i.valor));
   mk('cCustoSetor',{type:'doughnut',data:{labels:sg.map(x=>x[0]),datasets:[{data:sg.map(x=>+x[1].toFixed(2)),backgroundColor:sg.map((x,j)=>dim('setor',x[0],PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('setor'))});
-  const bar=(id,key,skip,n)=>{const X=itemsIn(skip),tg=top(groupBy(X,key),n,l=>sum(l,i=>i.valor)).reverse();
+  const bar=(id,key,skip,n)=>{const X=itemsIn(skip),tg=topN(groupBy(X,key),n,l=>sum(l,i=>i.valor)).reverse();
     mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'Custo',data:tg.map(x=>+x[1].toFixed(2)),backgroundColor:tg.map(x=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:true,money:true,onClick:cf(skip)})});};
   bar('cCustoResp',i=>i.resp,'resp',10);bar('cCustoTipo',i=>i.tipo,'tipo',10);bar('cCustoObra',i=>i.os.obra,'obra',10);
   const fx=[[0,0,'R$ 0'],[0.01,100,'até 100'],[100.01,500,'100–500'],[500.01,1000,'500–1.000'],[1000.01,5000,'1.000–5.000'],[5000.01,1e12,'> 5.000']];
@@ -849,12 +849,12 @@ R.os=()=>{
   mk('cOsFluxo',{type:'bar',data:{labels,datasets:[{label:'Abertas',data:series(ALL,o=>o.ab,ks,g),backgroundColor:'#2563eb',borderRadius:3},{label:'Fechadas',data:series(ALL,o=>o.fech,ks,g),backgroundColor:'#16a34a',borderRadius:3}]},options:opts({legend:true})});
   const pz=['Concluída no prazo','Concluída com atraso','Aberta no prazo','Aberta atrasada','Sem previsão'],pcol=['#16a34a','#dc2626','#2563eb','#f59e0b','#94a3b8'];
   mk('cOsPrazo',{type:'doughnut',data:{labels:pz,datasets:[{data:pz.map(p=>X.filter(x=>x.prazo===p).length),backgroundColor:pcol,borderWidth:0}]},options:dopts()});
-  const bar=(id,key,skip,n,horiz)=>{const tg=top(groupBy(osIn(skip),key),n,l=>l.length);if(horiz)tg.reverse();
+  const bar=(id,key,skip,n,horiz)=>{const tg=topN(groupBy(osIn(skip),key),n,l=>l.length);if(horiz)tg.reverse();
     mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'OS',data:tg.map(x=>x[1]),backgroundColor:tg.map((x,j)=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:horiz,onClick:cf(skip)})});};
   bar('cOsPrio',o=>o.prio,'prio',6,false);bar('cOsSol',o=>o.sol,'sol',10,true);bar('cOsObra',o=>o.obra,'obra',10,true);
-  const mg=top(groupBy(osIn('man'),o=>o.man),6,l=>l.length);
+  const mg=topN(groupBy(osIn('man'),o=>o.man),6,l=>l.length);
   mk('cOsMan',{type:'doughnut',data:{labels:mg.map(x=>x[0]),datasets:[{data:mg.map(x=>x[1]),backgroundColor:mg.map((x,j)=>dim('man',x[0],PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('man'))});
-  const sg=top(groupBy(X,x=>x.o.status),8,l=>l.length);
+  const sg=topN(groupBy(X,x=>x.o.status),8,l=>l.length);
   mk('cOsStatus',{type:'doughnut',data:{labels:sg.map(x=>x[0]),datasets:[{data:sg.map(x=>x[1]),backgroundColor:sg.map((x,j)=>PAL[j%PAL.length]),borderWidth:0}]},options:dopts()});
   const pr=uniq(X.map(x=>x.o.prio));
   mk('cOsLead',{type:'bar',data:{labels:pr,datasets:[

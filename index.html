@@ -64,6 +64,7 @@ main{max-width:1500px;margin:0 auto;padding:14px}
 .kpi.ok{border-left-color:var(--ok)}.kpi.warn{border-left-color:var(--warn)}.kpi.bad{border-left-color:var(--bad)}.kpi.ext{border-left-color:var(--ext)}.kpi.scrap{border-left-color:var(--scrap)}
 .kpi .l{font-size:12px;color:var(--mut)}
 .kpi .v{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.kpi .v.t{font-size:18px;line-height:1.3;margin:5px 0;letter-spacing:0}
 .kpi .d{font-size:12px;font-weight:600;color:var(--mut)}.kpi .d span{font-weight:400;color:var(--mut)}
 .kpi .d.pos{color:var(--ok)}.kpi .d.neg{color:var(--bad)}
 .kpi .s{font-size:12px;color:var(--mut)}
@@ -151,13 +152,14 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
  <div class="kpis" id="kEquipe"></div>
  <div class="grid">
   <div class="card c12"><h3>Ranking de colaboradores <small>clique no nome para filtrar todo o painel — pode marcar vários</small></h3><div id="tbEquipe"></div></div>
-  <div class="card c12"><h3>Conclusões por colaborador — semana a semana / mês a mês <span class="seg"><button data-evo="week">Semanas</button><button data-evo="month">Meses</button></span></h3><p class="hint">Colunas empilhadas: cada cor é um colaborador (clique na barra para filtrar). Janela fixa — 16 semanas ou 12 meses — independente das datas escolhidas no topo; respeita os demais filtros. O último período ainda está em andamento.</p><div class="cv tall"><canvas id="cEvoEquipe"></canvas></div></div>
-  <div class="card c6"><h3>Equipamentos por colaborador e destino <small>no período</small></h3><div class="cv tall"><canvas id="cEqResp"></canvas></div></div>
-  <div class="card c6"><h3>Evolução das conclusões <small>principais colaboradores</small></h3><div class="cv tall"><canvas id="cEqEvol"></canvas></div></div>
-  <div class="card c12"><h3>Mapa de produção <small>conclusões por colaborador em cada período — quanto mais escuro, mais equipamentos</small></h3><div class="heat" id="heatBox"></div></div>
-  <div class="card c4"><h3>Média por dia útil</h3><div class="cv"><canvas id="cEqPdu"></canvas></div></div>
-  <div class="card c4"><h3>Participação nas conclusões</h3><div class="cv"><canvas id="cEqShare"></canvas></div></div>
-  <div class="card c4"><h3>Carga atual <small>itens em andamento por colaborador</small></h3><div class="cv"><canvas id="cEqCarga"></canvas></div></div>
+  <div class="card c12"><h3>Conclusões por mês / semana <span class="seg"><button data-evo="week">Semanas</button><button data-evo="month">Meses</button></span></h3>
+   <p class="hint" id="evoHint"></p>
+   <div class="cv tall"><canvas id="cEvoEquipe"></canvas></div>
+   <div class="rule" id="evoSummary" style="padding-top:8px"></div></div>
+  <div class="card c6"><h3>Equipamentos por colaborador e destino <small>no período, agrupado por setor — clique para filtrar</small></h3><div class="cv tall"><canvas id="cEqResp"></canvas></div></div>
+  <div class="card c6"><h3>Produtividade nos dias trabalhados <small>média de concluídos por dia com entrega — comparar só dentro do mesmo setor</small></h3><div class="cv tall"><canvas id="cEqPdu"></canvas></div></div>
+  <div class="card c12"><h3>Mapa de produção <small>conclusões por colaborador em cada período — a intensidade da cor é calculada separadamente em cada setor</small></h3><div class="heat" id="heatBox"></div></div>
+  <div class="card c12"><h3>Evolução das conclusões <small>3 principais de cada setor</small></h3><div class="cv tall"><canvas id="cEqEvol"></canvas></div></div>
   <div class="card c12"><h3 id="eqDetTitulo">Equipamentos dos colaboradores selecionados</h3><div id="eqDetHint" class="hint">Marque um ou mais colaboradores (na tabela acima ou no filtro “Responsável”) para ver aqui cada equipamento que concluíram no período.</div><div id="tbEqDet"></div></div>
  </div>
 </section>
@@ -197,7 +199,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
   <div class="card c7"><h3>Pareto por tipo de equipamento <small>clique para filtrar</small></h3><div class="cv tall"><canvas id="cPareto"></canvas></div></div>
   <div class="card c5"><h3>Destino por tipo (%)</h3><div class="cv tall"><canvas id="cDestTipo"></canvas></div></div>
   <div class="card c6"><h3>Mais reincidentes <small>patrimônios com mais passagens no período</small></h3><div class="cv"><canvas id="cReinc"></canvas></div></div>
-  <div class="card c6"><h3>Equipamentos por obra <small>clique para filtrar</small></h3><div class="cv"><canvas id="cEqObra"></canvas></div></div>
+  <div class="card c6"><h3>Equipamentos por obra <small>clique para filtrar</small></h3><p class="hint" id="hObraEq"></p><div class="cv"><canvas id="cEqObra"></canvas></div></div>
   <div class="card c12"><h3>Equipamentos no período <small>agrupados por patrimônio — clique para ver o histórico</small></h3><div id="tbEquip"></div></div>
  </div>
 </section>
@@ -210,7 +212,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
   <div class="card c4"><h3>Custo por setor <small>clique para filtrar</small></h3><div class="cv tall"><canvas id="cCustoSetor"></canvas></div></div>
   <div class="card c6"><h3>Custo por colaborador</h3><div class="cv"><canvas id="cCustoResp"></canvas></div></div>
   <div class="card c6"><h3>Custo por tipo de equipamento</h3><div class="cv"><canvas id="cCustoTipo"></canvas></div></div>
-  <div class="card c6"><h3>Custo por obra</h3><div class="cv"><canvas id="cCustoObra"></canvas></div></div>
+  <div class="card c6"><h3>Custo por obra</h3><p class="hint" id="hObraCustos"></p><div class="cv"><canvas id="cCustoObra"></canvas></div></div>
   <div class="card c6"><h3>Distribuição dos valores gastos <small>equipamentos por faixa de valor</small></h3><div class="cv"><canvas id="cCustoFaixa"></canvas></div></div>
   <div class="card c12"><h3>Maiores gastos individuais</h3><div id="tbCaros"></div></div>
  </div>
@@ -226,7 +228,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
   <div class="card c4"><h3>Situação das OS</h3><div class="cv"><canvas id="cOsStatus"></canvas></div></div>
   <div class="card c4"><h3>OS por setor <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsSetor"></canvas></div></div>
   <div class="card c4"><h3>OS por solicitante <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsSol"></canvas></div></div>
-  <div class="card c4"><h3>OS por obra <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsObra"></canvas></div></div>
+  <div class="card c4"><h3>OS por obra <small>clique para filtrar</small></h3><p class="hint" id="hObraOs"></p><div class="cv"><canvas id="cOsObra"></canvas></div></div>
   <div class="card c4"><h3>Interna × retorno de obra <small>clique para filtrar</small></h3><div class="cv"><canvas id="cOsMan"></canvas></div></div>
   <div class="card c12"><h3>Ordens de serviço abertas no período <small>clique na linha para ver os equipamentos</small></h3><div id="tbOs"></div></div>
  </div>
@@ -294,7 +296,7 @@ function pnum(v){
   if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
   const n=parseFloat(s);return isNaN(n)?0:n;
 }
-const NA='NÃO ATRIBUÍDO';
+const NA='NÃO ATRIBUÍDO',SEM='SEM OBRA';
 const CLS={CONCLUIDO:{n:'Concluído',c:'#16a34a'},EXTERNA:{n:'Manutenção externa',c:'#7c3aed'},SUCATA:{n:'Sucata',c:'#64748b'},CANCELADO:{n:'Cancelado',c:'#dc2626'},ABERTO:{n:'Em oficina',c:'#f59e0b'}};
 const EXIT_ORDER=['CONCLUIDO','EXTERNA','SUCATA','CANCELADO'];
 const CLS_ORDER=EXIT_ORDER.concat(['ABERTO']);
@@ -328,8 +330,8 @@ function build(raw){
       man:S0(r.MANUTENCAO).toUpperCase()||'—',sol:S0(r.SOLICITANTE).toUpperCase()||'—',desc:S0(r.DESCRICAO_GERAL),
       prio:S0(r.PRIORIDADE).toUpperCase()||'—',status:S0(r.STATUS_OS).toUpperCase()||'—',setor:S0(r.SETOR_RESPONSAVEL).toUpperCase()||'—',
       custo:pnum(r.CUSTO_EM_PECAS),prev:pdate(r.DATA_DE_PREVISAO)};
-    const m=o.desc.match(/\bOBRA\s*:?\s*(\d[0-9A-Za-z\-\/]*)/i);
-    o.obra=m?m[1].toUpperCase():'SEM OBRA';
+    const m=o.desc.match(/\bOBRA\s*:?\s*(\d[0-9A-Za-z\-]*)/i);
+    o.obra=m?m[1].toUpperCase().replace(/-+$/,''):SEM;
     return o;
   });
   const osMap=new Map(osList.map(o=>[o.id,o]));
@@ -355,7 +357,7 @@ function build(raw){
     if(fim!=null&&ini!=null&&fim<ini)Q.fimAntes.push(it);
     if(ini!=null&&ent!=null&&ini<ent)Q.iniAntesOS.push(it);
     if(cls==='ABERTO'&&fim!=null)Q.abertoComFim.push(it);
-    if(cls!=='ABERTO'&&fim==null)Q.finalSemFim.push(it);
+    if(cls!=='ABERTO'&&cls!=='CANCELADO'&&fim==null)Q.finalSemFim.push(it);
     if(cls==='CONCLUIDO'&&it.resp===NA)Q.concSemResp.push(it);
     if(emAndamento(it)&&it.resp===NA)Q.andSemResp.push(it);
     if(cls==='CONCLUIDO'&&!it.link)Q.semLink.push(it);
@@ -369,13 +371,15 @@ function build(raw){
     if(isLib(o)&&abertos.length)abertos.forEach(i=>Q.osLibPend.push(i));
     if(!isLib(o)&&!abertos.length)its.forEach(i=>Q.osFinalNaoLib.push(i));
   });
+  const sc=new Map();items.forEach(i=>{if(i.resp===NA||!i.setor||i.setor==='—')return;let m=sc.get(i.resp);if(!m)sc.set(i.resp,m=new Map());m.set(i.setor,(m.get(i.setor)||0)+1);});
+  const secMap=new Map([...sc].map(([r,m])=>[r,[...m.entries()].sort((a,b)=>b[1]-a[1])[0][0]]));
   const ds=[];items.forEach(i=>{if(i.ent!=null)ds.push(i.ent);if(i.fimEf!=null)ds.push(i.fimEf);});osList.forEach(o=>{if(o.ab!=null)ds.push(o.ab);});
   const quality=[
     ['concSemResp','Concluído sem responsável','Entrega que não entra no desempenho de ninguém.'],
     ['andSemResp','Em andamento sem responsável','Status em manutenção/pausado/aguardando peça, sem responsável.'],
     ['osFinalNaoLib','OS com tudo finalizado mas não liberada','Todos os equipamentos já saíram, mas a OS não está “OS LIBERADA”.'],
     ['osLibPend','OS liberada com equipamento ainda aberto','A OS está liberada, porém há equipamento sem destino final.'],
-    ['finalSemFim','Saiu da oficina sem data de fim','Concluído/sucata/externo/cancelado sem DATA_FIM (o painel usa a data da OS).'],
+    ['finalSemFim','Saiu da oficina sem data de fim','Concluído, manutenção externa ou sucata sem DATA_FIM. Cancelado não entra aqui, pois sai sem manutenção. O painel usa a data da OS.'],
     ['abertoComFim','Ainda na oficina mas com data de fim','Status em aberto, porém há data de fim preenchida.'],
     ['fimAntes','Fim antes do início','Data de fim anterior à data de início da manutenção.'],
     ['iniAntesOS','Início antes da entrada da OS','Manutenção começou antes da data da OS.'],
@@ -383,7 +387,7 @@ function build(raw){
     ['osAusente','OS não encontrada','ID_OS_REF não existe na aba ORDENS_SERVICO.'],
     ['futura','Data no futuro','Datas posteriores a amanhã.']
   ].map(([k,t,d])=>({k,t,d,items:Q[k]}));
-  return {os:osList,items,osMap,byOs,byPat,quality,min:ds.length?Math.min(...ds):today0(),max:ds.length?Math.max(...ds):today0()};
+  return {os:osList,items,osMap,byOs,byPat,quality,secMap,min:ds.length?Math.min(...ds):today0(),max:ds.length?Math.max(...ds):today0()};
 }
 
 /* ====================== dados de demonstração ====================== */
@@ -447,7 +451,7 @@ function genDemo(){
       const fech=allDone?Math.max(...its.map(x=>x.fimIt)):null;
       const statusOS=allDone?'OS LIBERADA':its.some(x=>x.status!=='NÃO INICIADO')?'EM MANUTENÇÃO':'AGUARDANDO MANUTENÇÃO';
       ordens.push({ID_OS:osId,DATA_ABERTURA:toISO(ab),DATA_RECEBIDA:toISO(rec),DATA_FECHAMENTO:fech!=null?toISO(fech):'',MANUTENCAO:rnd()<0.9?'INTERNA':'RETORNO DE OBRA',SOLICITANTE:sol,
-        DESCRICAO_GERAL:'OBRA: '+obra+' / RM: '+(117000+osId)+' / QUANTIDADE:'+k+'. '+its[0].c[0],PRIORIDADE:prio,STATUS_OS:statusOS,
+        DESCRICAO_GERAL:(dias<150?'OBRA: '+obra+' / ':'')+'RM: '+(117000+osId)+' / QUANTIDADE:'+k+'. '+its[0].c[0],PRIORIDADE:prio,STATUS_OS:statusOS,
         SETOR_RESPONSAVEL:its[0].setor,CUSTO_EM_PECAS:Math.round(sum(its,x=>x.valor)*100)/100,DATA_DE_PREVISAO:toISO(ad(ab,prevD))});
       its.forEach(x=>{
         const ok=x.status==='CONCLUIDO';
@@ -494,26 +498,62 @@ function diasUteis(a,b){let n=0;for(let t=a,c=0;t<=b&&c<4000;t=ad(t,1),c++){cons
 const lab=(k,v)=>k==='cls'?(CLS[v]?CLS[v].n:v):v;
 const short=n=>String(n).split(' ').slice(0,2).join(' ');
 
+/* ====================== setores (comparar só dentro do mesmo setor) ====================== */
+function secOf(r){return (DATA&&DATA.secMap&&DATA.secMap.get(r))||'—';}
+const SEC_PRI=['ELETRICA','MECANICA'];
+const secRank=s=>{const i=SEC_PRI.indexOf(N(s));return i<0?9:i;};
+const secCmp=(a,b)=>secRank(a)-secRank(b)||String(a).localeCompare(String(b),'pt-BR');
+const secNome=s=>s==='—'?s:s.charAt(0)+s.slice(1).toLowerCase();
+const secAbrev=s=>({ELETRICA:'Elét.',MECANICA:'Mec.'}[N(s)]||secNome(s).slice(0,5));
+const SEC_COLOR={ELETRICA:'#f59e0b',MECANICA:'#2563eb'};
+const secColor=(s,j)=>SEC_COLOR[N(s)]||PAL[(j+3)%PAL.length];
+const secLabel=r=>`${r.resp} · ${secAbrev(r.setor)}`;
+const unLabel=l=>String(l).split(' · ')[0];
+function noteObra(id,n,u){const e=document.getElementById(id);if(e)e.textContent=n?`${num(n)} ${u} sem obra informada ficaram de fora deste gráfico.`:'';}
+
 /* ====================== gráficos ====================== */
 const charts={};
+/* escreve os valores em cima das colunas (mode 'total' = soma da pilha; 'each' = cada coluna) */
+const VL={id:'valueLabels',afterDatasetsDraw(chart,args,o){
+  if(!o||!o.mode)return;
+  const n=(chart.data.labels||[]).length,metas=[];
+  chart.data.datasets.forEach((d,i)=>{if(d.type!=='line'&&chart.isDatasetVisible(i))metas.push({d,m:chart.getDatasetMeta(i)});});
+  if(!metas.length)return;
+  const ctx=chart.ctx;ctx.save();ctx.fillStyle=cssv('--ink');ctx.textAlign='center';ctx.font=(n>14?'600 10px':'600 12px')+' system-ui,sans-serif';
+  for(let k=0;k<n;k++){
+    if(o.mode==='total'){
+      let tot=0,top=null,x=null;
+      metas.forEach(({d,m})=>{const v=+d.data[k]||0,el=m.data[k];if(!el)return;tot+=v;x=el.x;if(v)top=top==null?el.y:Math.min(top,el.y);});
+      if(tot&&top!=null)ctx.fillText(String(tot),x,top-4);
+    }else metas.forEach(({d,m})=>{const v=+d.data[k]||0,el=m.data[k];if(v&&el)ctx.fillText(String(v),el.x,el.y-3);});
+  }
+  ctx.restore();}};
 function mk(id,cfg){
   const el=document.getElementById(id);if(!el)return;
   if(charts[id]){try{charts[id].destroy();}catch(e){}}
   cfg.options=Object.assign({responsive:true,maintainAspectRatio:false},cfg.options||{});
+  cfg.plugins=(cfg.plugins||[]).concat([VL]);
   charts[id]=new Chart(el,cfg);return charts[id];
 }
+const moneyShort=v=>{const a=Math.abs(v);return a>=1e6?'R$ '+num(v/1e6,1)+' mi':a>=1e3?'R$ '+num(v/1e3,a>=1e4?0:1)+' mil':'R$ '+num(v,0);};
 function opts(o={}){
   const g=cssv('--line'),t=cssv('--mut');
-  const money=v=>brl(v);
-  const val={beginAtZero:true,stacked:!!o.stack,grid:{color:g},ticks:{color:t,precision:o.dec?undefined:0,callback:o.money?money:(o.pct?(v=>v+'%'):undefined)}};
+  /* IMPORTANTE: nunca deixar chaves com valor undefined (ex.: callback: undefined) —
+     o Chart.js passa a usar o valor bruto (0,1,2…) no lugar do rótulo. */
+  const vt={color:t};if(!o.dec)vt.precision=0;
+  if(o.money)vt.callback=moneyShort;else if(o.pct)vt.callback=v=>v+'%';
+  const val={beginAtZero:true,stacked:!!o.stack,grid:{color:g},ticks:vt};
   if(o.max)val.max=o.max;
-  const cat={stacked:!!o.stack,grid:{display:false},ticks:{color:t,autoSkip:!o.horizontal,maxRotation:o.horizontal?0:45,callback:o.horizontal?function(v){const l=String(this.getLabelForValue(v));return l.length>24?l.slice(0,23)+'…':l;}:undefined}};
+  const ct={color:t,autoSkip:!o.horizontal,maxRotation:o.horizontal?0:45};
+  if(o.horizontal)ct.callback=function(v){const l=String(this.getLabelForValue(v));return l.length>26?l.slice(0,25)+'…':l;};
+  const cat={stacked:!!o.stack,grid:{display:false},ticks:ct};
   const vk=o.horizontal?'x':'y';
   const options={plugins:{legend:{display:!!o.legend,labels:{color:t,usePointStyle:true,boxWidth:8}},
     tooltip:{callbacks:{label:c=>{const v=c.parsed[vk];const n=c.dataset.label?c.dataset.label+': ':'';return n+(o.money?brl(v):o.pct?num(v,0)+'%':num(v,o.dec?1:0));}}}},
     scales:o.horizontal?{x:val,y:cat}:{x:cat,y:val}};
   if(o.horizontal)options.indexAxis='y';
-  if(o.y2)options.scales.y2={position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:t,precision:0,callback:o.y2money?money:undefined}};
+  if(o.y2){const y2t={color:t};if(!o.y2dec)y2t.precision=0;if(o.y2money)y2t.callback=moneyShort;
+    options.scales.y2={position:'right',beginAtZero:true,grid:{drawOnChartArea:false},ticks:y2t};}
   if(o.onClick){options.onClick=o.onClick;options.onHover=(e,el)=>{if(e.native&&e.native.target)e.native.target.style.cursor=el.length?'pointer':'default';};}
   return options;
 }
@@ -617,7 +657,7 @@ function showOS(o){
 function goConsulta(q){$('#qBusca').value=q;setTab('consulta');}
 
 /* ====================== KPIs ====================== */
-const kpi=(l,v,o={})=>`<div class="kpi ${o.t||''}"><div class="l">${l}</div><div class="v">${v}</div>${o.d||''}${o.s?`<div class="s">${o.s}</div>`:''}</div>`;
+const kpi=(l,v,o={})=>`<div class="kpi ${o.t||''}"><div class="l">${l}</div><div class="v${o.txt?' t':''}">${v}</div>${o.d||''}${o.s?`<div class="s">${o.s}</div>`:''}</div>`;
 function dl(cur,prev,good){
   if(S.pf<DATA.min||prev==null)return '';
   if(!prev&&!cur)return '';
@@ -657,8 +697,9 @@ function insights(){
   if(sem.length)out.push({t:'warn',h:'Sem conclusões nos últimos 14 dias',x:`${sem.slice(0,4).map(short).join(', ')}${sem.length>4?'…':''} entregaram nos 45 dias anteriores, mas nada nos últimos 14.`});
   const RS=respStats(),quedas=RS.filter(r=>r.delta!=null&&r.prev>=5&&r.delta<=-30).sort((a,b)=>a.delta-b.delta);
   if(quedas.length)out.push({t:'warn',h:'Queda de produção no período',x:`${quedas.slice(0,3).map(r=>`${short(r.resp)} (${num(r.delta,0)}%)`).join(', ')} concluíram bem menos que no período anterior.`});
-  const lider=RS.slice().sort((a,b)=>b.conc-a.conc)[0];
-  if(lider&&lider.conc)out.push({t:'ok',h:'Destaque do período selecionado',x:`${short(lider.resp)} concluiu ${num(lider.conc)} equipamento(s)${lider.share!=null?` (${num(lider.share,0)}% da equipe)`:''}.`});
+  [...new Set(RS.filter(r=>r.conc>0).map(r=>r.setor))].sort(secCmp).forEach(sc=>{
+    const l=RS.filter(r=>r.setor===sc&&r.conc>0).sort((a,b)=>b.conc-a.conc)[0];
+    if(l)out.push({t:'ok',h:'Destaque '+secNome(sc),x:`${short(l.resp)} concluiu ${num(l.conc)} equipamento(s)${l.share!=null?` (${num(l.share,0)}% do setor)`:''}.`});});
   const late=DATA.os.filter(o=>!isLib(o)&&o.prev!=null&&o.prev<t).length;
   if(late)out.push({t:'warn',h:'OS com prazo vencido',x:`${late} OS ainda não liberadas passaram da data de previsão.`});
   const q=DATA.quality.filter(x=>['concSemResp','osFinalNaoLib','osLibPend'].includes(x.k)).reduce((n,x)=>n+x.items.length,0);
@@ -669,29 +710,31 @@ function insights(){
 /* ====================== desempenho por colaborador ====================== */
 function respStats(){
   const P=itemsIn('resp'),PV=itemsIn('resp',S.pf,S.pt),A=itemsBase('resp'),m=new Map();
-  const g=r=>m.get(r)||(m.set(r,{resp:r,tot:0,conc:0,ext:0,suc:0,can:0,and:0,dias:new Set(),custo:0,prev:0,set:new Map()}),m.get(r));
+  const g=r=>m.get(r)||(m.set(r,{resp:r,tot:0,conc:0,ext:0,suc:0,can:0,and:0,dias:new Set(),custo:0,prev:0}),m.get(r));
   P.forEach(i=>{if(i.resp===NA)return;const s=g(i.resp);s.tot++;
     if(i.cls==='CONCLUIDO'){s.conc++;s.dias.add(i.fimEf);}else if(i.cls==='EXTERNA')s.ext++;else if(i.cls==='SUCATA')s.suc++;else if(i.cls==='CANCELADO')s.can++;
-    s.custo+=i.valor;s.set.set(i.setor,(s.set.get(i.setor)||0)+1);});
+    s.custo+=i.valor;});
   PV.forEach(i=>{if(i.resp!==NA&&i.cls==='CONCLUIDO')g(i.resp).prev++;});
   A.forEach(i=>{if(emAndamento(i)&&i.resp!==NA)g(i.resp).and++;});
-  const du=Math.max(1,diasUteis(S.from,S.to)),all=[...m.values()],tc=sum(all,s=>s.conc);
-  const comparavel=S.pf>=DATA.min;
-  return all.map(s=>{const st=topN(s.set,1,x=>x)[0];
-    return Object.assign(s,{nd:s.dias.size,pda:s.dias.size?s.conc/s.dias.size:null,pdu:s.conc/du,share:tc?s.conc/tc*100:null,
-      delta:(comparavel&&s.prev)?(s.conc-s.prev)/s.prev*100:null,setor:st?st[0]:'—'});});
+  const du=Math.max(1,diasUteis(S.from,S.to)),all=[...m.values()],comparavel=S.pf>=DATA.min;
+  const tcSec=new Map();all.forEach(s=>{s.setor=secOf(s.resp);tcSec.set(s.setor,(tcSec.get(s.setor)||0)+s.conc);});
+  all.forEach(s=>Object.assign(s,{nd:s.dias.size,pda:s.dias.size?s.conc/s.dias.size:null,pdu:s.conc/du,
+    share:tcSec.get(s.setor)?s.conc/tcSec.get(s.setor)*100:null,delta:(comparavel&&s.prev)?(s.conc-s.prev)/s.prev*100:null,pos:null}));
+  groupBy(all.filter(s=>s.conc>0),s=>s.setor).forEach(l=>l.sort((a,b)=>b.conc-a.conc).forEach((s,i)=>{s.pos=i+1;}));
+  return all;
 }
 function heatHtml(RS){
   let g=gran(),ks=buckets(S.from,S.to,g);
   if(ks.length>60){g=g==='day'?'week':'month';ks=buckets(S.from,S.to,g);}
-  const rows=RS.filter(r=>r.conc>0).sort((a,b)=>b.conc-a.conc).slice(0,15);
+  const secs=[...new Set(RS.filter(r=>r.conc>0).map(r=>r.setor))].sort(secCmp),rows=[];
+  secs.forEach(s=>rows.push(...RS.filter(r=>r.setor===s&&r.conc>0).sort((a,b)=>b.conc-a.conc).slice(0,12)));
   if(!rows.length)return '<div style="padding:16px;color:var(--mut)">Nenhuma conclusão no período.</div>';
   const idx=new Map(ks.map((k,i)=>[k,i])),cnt=new Map(rows.map(r=>[r.resp,ks.map(()=>0)]));
   itemsBase('resp').forEach(i=>{if(i.cls!=='CONCLUIDO'||i.resp===NA||!inR(i.fimEf,S.from,S.to))return;const row=cnt.get(i.resp);if(!row)return;const x=idx.get(bKey(i.fimEf,g));if(x!=null)row[x]++;});
-  let mx=1;cnt.forEach(a=>a.forEach(v=>{if(v>mx)mx=v;}));
+  const mxS=new Map();rows.forEach(r=>{const a=cnt.get(r.resp);mxS.set(r.setor,Math.max(mxS.get(r.setor)||1,...a));});
   const head='<tr><th>Colaborador</th>'+ks.map(k=>`<th title="${esc(bLabel(k,g))}">${esc(bLabel(k,g))}</th>`).join('')+'<th class="num">Total</th></tr>';
-  const body=rows.map(r=>{const a=cnt.get(r.resp);
-    return `<tr><td>${esc(r.resp)}</td>${a.map((v,i)=>{const al=v?0.12+0.88*v/mx:0;return `<td title="${esc(r.resp)} — ${esc(bLabel(ks[i],g))}: ${v}" style="${v?`background:rgba(22,163,74,${al.toFixed(2)});color:${al>0.55?'#fff':'inherit'}`:''}">${v||''}</td>`;}).join('')}<td class="num"><b>${sum(a)}</b></td></tr>`;}).join('');
+  const body=rows.map(r=>{const a=cnt.get(r.resp),mx=mxS.get(r.setor);
+    return `<tr><td>${esc(r.resp)} <small style="color:var(--mut)">· ${esc(secAbrev(r.setor))}</small></td>${a.map((v,i)=>{const al=v?0.12+0.88*v/mx:0;return `<td title="${esc(r.resp)} — ${esc(bLabel(ks[i],g))}: ${v}" style="${v?`background:rgba(22,163,74,${al.toFixed(2)});color:${al>0.55?'#fff':'inherit'}`:''}">${v||''}</td>`;}).join('')}<td class="num"><b>${sum(a)}</b></td></tr>`;}).join('');
   return `<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
@@ -713,66 +756,84 @@ function evoGeral(){
   evoBtns();
   const {g,from,to,ks}=evoRange(),A=itemsBase('');
   const conc=A.filter(i=>i.cls==='CONCLUIDO'),outras=A.filter(i=>i.cls!=='ABERTO'&&i.cls!=='CONCLUIDO');
+  const op=opts({legend:true});op.plugins.valueLabels={mode:'each'};op.layout={padding:{top:18}};
   mk('cEvoGeral',{type:'bar',data:{labels:evoLabels(ks,g),datasets:[
     {label:'Entradas na oficina',data:seriesR(A,i=>i.ent,ks,g,from,to),backgroundColor:'#f59e0b',borderRadius:3},
     {label:'Concluídos',data:seriesR(conc,i=>i.fimEf,ks,g,from,to),backgroundColor:'#16a34a',borderRadius:3},
     {label:'Outras saídas (externa, sucata, cancelado)',data:seriesR(outras,i=>i.fimEf,ks,g,from,to),backgroundColor:'#64748b',borderRadius:3}]},
-    options:opts({legend:true})});
+    options:op});
 }
 function evoEquipe(){
   evoBtns();
-  const {g,from,to,ks}=evoRange(),A=itemsBase('resp').filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA&&inR(i.fimEf,from,to));
-  const tops=topN(groupBy(A,i=>i.resp),8,l=>l.length),names=tops.map(x=>x[0]),rest=A.filter(i=>!names.includes(i.resp));
-  const ds=tops.map((x,j)=>({label:x[0],data:seriesR(x[2],i=>i.fimEf,ks,g,from,to),backgroundColor:dim('resp',x[0],PAL[j%PAL.length]),borderRadius:2}));
-  if(rest.length)ds.push({label:'Outros',data:seriesR(rest,i=>i.fimEf,ks,g,from,to),backgroundColor:'#94a3b8',borderRadius:2});
-  mk('cEvoEquipe',{type:'bar',data:{labels:evoLabels(ks,g),datasets:ds},options:opts({stack:true,legend:true,onClick:(e,els,ch)=>{if(!els||!els.length)return;const n=ch.data.datasets[els[0].datasetIndex].label;if(n!=='Outros')toggle('resp',n);}})});
+  const {g,from,to,ks}=evoRange(),sel=F.resp.size,unit=g==='month'?'mês':'semana';
+  const A=itemsBase('').filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA&&inR(i.fimEf,from,to));
+  const secs=[...new Set(A.map(i=>secOf(i.resp)))].sort(secCmp);
+  const idx=new Map(ks.map((k,i)=>[k,i])),days=ks.map(()=>new Set());
+  A.forEach(i=>{const x=idx.get(bKey(i.fimEf,g));if(x!=null)days[x].add(i.fimEf);});
+  const nd=days.map(d=>d.size),tot=seriesR(A,i=>i.fimEf,ks,g,from,to);
+  const ds=secs.map((sc,j)=>({label:secNome(sc),data:seriesR(A.filter(i=>secOf(i.resp)===sc),i=>i.fimEf,ks,g,from,to),backgroundColor:secColor(sc,j),borderRadius:3,order:2}));
+  const dTot=sum(nd),pdd=dTot?sum(tot)/dTot:null;
+  if(sel){
+    ds.push({type:'line',label:'Média por dia com entrega (eixo direito)',data:tot.map((v,i)=>nd[i]?v/nd[i]:null),borderColor:'#dc2626',backgroundColor:'#dc2626',yAxisID:'y2',tension:.25,spanGaps:true,pointRadius:4,order:1});
+    if(pdd!=null)ds.push({type:'line',label:'Média do período por dia com entrega (eixo direito)',data:ks.map(()=>pdd),borderColor:'#7c3aed',backgroundColor:'#7c3aed',borderDash:[6,4],borderWidth:2,pointRadius:0,yAxisID:'y2',order:1});
+  }
+  const op=opts({stack:true,legend:true,y2:sel>0,y2dec:true});
+  op.plugins.valueLabels={mode:'total'};op.layout={padding:{top:18}};
+  op.interaction={mode:'index',intersect:false};
+  op.plugins.tooltip.callbacks.label=c=>`${c.dataset.label}: ${num(c.parsed.y,c.dataset.yAxisID==='y2'?1:0)}`;
+  if(sel)op.plugins.tooltip.callbacks.footer=it=>{const i=it[0].dataIndex;return `Total: ${tot[i]} · dias com entrega: ${nd[i]}`;};
+  mk('cEvoEquipe',{type:'bar',data:{labels:evoLabels(ks,g),datasets:ds},options:op});
+  const nomes=[...F.resp].map(short).join(', ');
+  $('#evoHint').textContent=sel
+    ?`Colunas = equipamentos concluídos por ${nomes} em cada ${unit}. A linha vermelha é a média por dia com entrega (concluídos ÷ dias em que houve ao menos uma conclusão): ela mostra o ritmo normal mesmo numa ${unit} com poucos dias trabalhados. A linha tracejada é a média do período. O último ${unit} ainda está em andamento.`
+    :`Colunas = total de equipamentos concluídos em cada ${unit}, separado por setor (cores). Marque um colaborador no ranking ou no filtro “Responsável” para ver o desempenho dele em cada ${unit} e a média por dia com entrega. Janela fixa: ${g==='month'?'12 meses':'16 semanas'}, independente das datas do topo.`;
+  $('#evoSummary').textContent=(sel&&pdd!=null)
+    ?`Na janela: ${num(sum(tot))} concluídos em ${num(dTot)} dias com entrega → ${num(pdd,1)} por dia com entrega e ${num(avg(tot),1)} por ${unit}. “Dias com entrega” = dias com pelo menos um equipamento concluído (a planilha não registra presença).`
+    :'';
 }
 
 const R={};
 R.equipe=()=>{
   const RS=respStats(),P=itemsIn('resp'),sel=F.resp.size;
-  const base=RS.filter(r=>r.tot>0),conc=sum(base,r=>r.conc),concV=itemsIn('resp',S.pf,S.pt).filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA).length;
-  const du=Math.max(1,diasUteis(S.from,S.to));
-  const porDia=new Map();P.forEach(i=>{if(i.cls==='CONCLUIDO')porDia.set(i.fimEf,(porDia.get(i.fimEf)||0)+1);});
-  const melhor=[...porDia.entries()].sort((a,b)=>b[1]-a[1])[0];
-  const lider=base.slice().sort((a,b)=>b.conc-a.conc)[0];
+  const base=RS.filter(r=>r.tot>0),secs=[...new Set(base.map(r=>r.setor))].filter(x=>x!=='—').sort(secCmp);
+  const conc=sum(base,r=>r.conc),concV=itemsIn('resp',S.pf,S.pt).filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA).length;
   const exits=P.filter(i=>i.resp!==NA).length;
   const semR=P.filter(i=>i.cls==='CONCLUIDO'&&i.resp===NA).length;
   const trav=itemsBase('resp').filter(i=>i.cls==='ABERTO'&&['PAUSADO','AGUARDANDO PECA'].includes(N(i.status))).length;
-  set('kEquipe',[
-    kpi('Concluídos no período',num(conc),{t:'ok',d:dl(conc,concV,'up'),s:`${num(exits)} saídas no total`}),
-    kpi('Colaboradores com entrega',num(base.filter(r=>r.conc>0).length),{s:`de ${num(RS.length)} com atividade`}),
-    kpi('Média por colaborador',base.length?num(conc/base.filter(r=>r.conc>0).length||0,1):'—',{s:'concluídos no período'}),
-    kpi('Média da equipe por dia útil',num(conc/du,1),{s:`${num(du)} dias úteis (seg–sex)`}),
-    kpi('Destaque',lider&&lider.conc?esc(short(lider.resp)):'—',{t:'ok',s:lider&&lider.conc?`${num(lider.conc)} concluídos`:''}),
-    kpi('Melhor dia da equipe',melhor?num(melhor[1]):'—',{s:melhor?fdate(melhor[0]):''}),
-    kpi('Taxa de conclusão',pc(conc,exits),{s:'concluídos ÷ todas as saídas'}),
-    kpi('Pausados / aguardando peça',num(trav),{t:trav?'warn':'ok',s:'sob responsabilidade da equipe'}),
-    semR?kpi('Concluídos sem responsável',num(semR),{t:'bad',s:'não entram no ranking'}):''
-  ].join(''));
+  const doSetor=s=>base.filter(r=>r.setor===s&&r.conc>0);
+  const porSetor=f=>secs.map(s=>`${secNome(s)} ${num(f(s))}`).join(' · ');
+  const kp=[
+    kpi('Concluídos no período',num(conc),{t:'ok',d:dl(conc,concV,'up'),s:porSetor(s=>sum(doSetor(s),r=>r.conc))}),
+    kpi('Colaboradores com entrega',num(base.filter(r=>r.conc>0).length),{s:porSetor(s=>doSetor(s).length)})
+  ];
+  secs.forEach(s=>{const l=doSetor(s).sort((a,b)=>b.conc-a.conc)[0];
+    kp.push(kpi('Destaque — '+secNome(s),l?esc(short(l.resp)):'—',{t:'ok',txt:1,s:l?`${num(l.conc)} concluídos · ${num(l.pda,1)} por dia com entrega`:'sem conclusões no período'}));});
+  secs.forEach(s=>{const L=doSetor(s);
+    kp.push(kpi('Média por colaborador — '+secNome(s),L.length?num(sum(L,r=>r.conc)/L.length,1):'—',{s:`${L.length} colaborador(es) com entrega`}));});
+  kp.push(kpi('Taxa de conclusão',pc(conc,exits),{s:'concluídos ÷ todas as saídas'}));
+  kp.push(kpi('Pausados / aguardando peça',num(trav),{t:trav?'warn':'ok',s:'sob responsabilidade da equipe'}));
+  if(semR)kp.push(kpi('Concluídos sem responsável',num(semR),{t:'bad',s:'não entram no ranking'}));
+  set('kEquipe',kp.join(''));
   tbl('tbEquipe',[
-    {t:'Colaborador',v:r=>r.resp,f:r=>`<b>${esc(r.resp)}</b>`},{t:'Setor',v:r=>r.setor},
+    {t:'Colaborador',v:r=>r.resp,f:r=>`<b>${esc(r.resp)}</b>`},{t:'Setor',v:r=>secNome(r.setor)},
+    {t:'Posição no setor',v:r=>r.pos,n:1,cls:'num',f:r=>r.pos?r.pos+'º':'—'},
     {t:'Concluídos',v:r=>r.conc,n:1,cls:'num',f:r=>`<b>${num(r.conc)}</b>`},
     {t:'Var. vs anterior',v:r=>r.delta,n:1,dec:0,cls:'num',f:r=>r.delta==null?'—':`<span style="color:${r.delta>=0?'var(--ok)':'var(--bad)'}">${r.delta>0?'+':''}${num(r.delta,0)}%</span>`},
-    {t:'% da equipe',v:r=>r.share,n:1,dec:0,cls:'num',f:r=>r.share==null?'—':num(r.share,0)+'%'},
+    {t:'% do setor',v:r=>r.share,n:1,dec:0,cls:'num',f:r=>r.share==null?'—':num(r.share,0)+'%'},
     {t:'Dias com entrega',v:r=>r.nd,n:1,cls:'num'},{t:'Média/dia com entrega',v:r=>r.pda,n:1,dec:1,cls:'num'},{t:'Média/dia útil',v:r=>r.pdu,n:1,dec:2,cls:'num'},
     {t:'Externos',v:r=>r.ext,n:1,cls:'num'},{t:'Sucata',v:r=>r.suc,n:1,cls:'num'},{t:'Cancelados',v:r=>r.can,n:1,cls:'num'},
     {t:'Em andamento agora',v:r=>r.and,n:1,cls:'num'},{t:'Gasto em peças',v:r=>r.custo,m:1,cls:'num'}
-  ],RS.filter(r=>r.tot>0||r.and>0),{sort:2,dir:-1,size:12,onRow:r=>toggle('resp',r.resp),sel:r=>F.resp.has(r.resp)});
-  const T=base.slice().sort((a,b)=>b.tot-a.tot).slice(0,15).reverse(),tl=T.map(r=>r.resp);
-  mk('cEqResp',{type:'bar',data:{labels:tl,datasets:[['conc','CONCLUIDO'],['ext','EXTERNA'],['suc','SUCATA'],['can','CANCELADO']].map(([k,c])=>({label:CLS[c].n,data:T.map(r=>r[k]),backgroundColor:tl.map(x=>dim('resp',x,CLS[c].c)),borderRadius:2}))},options:opts({stack:true,horizontal:true,legend:true,onClick:cf('resp')})});
-  const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
-  const tp=base.slice().sort((a,b)=>b.conc-a.conc).slice(0,6),A=itemsBase('resp');
-  mk('cEqEvol',{type:'line',data:{labels,datasets:tp.map((r,j)=>({label:short(r.resp),data:series(A.filter(i=>i.resp===r.resp&&i.cls==='CONCLUIDO'),i=>i.fimEf,ks,g),borderColor:PAL[j%PAL.length],backgroundColor:PAL[j%PAL.length],tension:.25,pointRadius:ks.length>60?0:2}))},options:opts({legend:true})});
+  ],RS.filter(r=>r.tot>0||r.and>0),{sort:3,dir:-1,size:12,onRow:r=>toggle('resp',r.resp),sel:r=>F.resp.has(r.resp)});
   evoEquipe();
+  const T=[];secs.forEach(s=>T.push(...base.filter(r=>r.setor===s).sort((a,b)=>b.tot-a.tot).slice(0,8)));
+  mk('cEqResp',{type:'bar',data:{labels:T.map(secLabel),datasets:[['conc','CONCLUIDO'],['ext','EXTERNA'],['suc','SUCATA'],['can','CANCELADO']].map(([k,c])=>({label:CLS[c].n,data:T.map(r=>r[k]),backgroundColor:T.map(r=>dim('resp',r.resp,CLS[c].c)),borderRadius:2}))},options:opts({stack:true,horizontal:true,legend:true,onClick:cf('resp',unLabel)})});
+  const pd=[];secs.forEach(s=>pd.push(...doSetor(s).sort((a,b)=>b.pda-a.pda).slice(0,8)));
+  mk('cEqPdu',{type:'bar',data:{labels:pd.map(secLabel),datasets:secs.map((s,j)=>({label:secNome(s),data:pd.map(r=>r.setor===s?+r.pda.toFixed(1):null),backgroundColor:pd.map(r=>dim('resp',r.resp,secColor(s,j))),borderRadius:3}))},options:opts({stack:true,horizontal:true,dec:true,legend:true,onClick:cf('resp',unLabel)})});
   set('heatBox',heatHtml(RS));
-  const pd=base.filter(r=>r.conc>0).sort((a,b)=>a.pdu-b.pdu).slice(-15);
-  mk('cEqPdu',{type:'bar',data:{labels:pd.map(r=>r.resp),datasets:[{label:'Concluídos por dia útil',data:pd.map(r=>+r.pdu.toFixed(2)),backgroundColor:pd.map(r=>dim('resp',r.resp,'#16a34a')),borderRadius:3}]},options:opts({horizontal:true,dec:true,onClick:cf('resp')})});
-  const sh=base.filter(r=>r.conc>0).sort((a,b)=>b.conc-a.conc).slice(0,10);
-  mk('cEqShare',{type:'doughnut',data:{labels:sh.map(r=>r.resp),datasets:[{data:sh.map(r=>r.conc),backgroundColor:sh.map((r,j)=>dim('resp',r.resp,PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('resp'))});
-  const ca=RS.filter(r=>r.and>0).sort((a,b)=>a.and-b.and),openI=itemsBase('resp').filter(i=>emAndamento(i)&&i.resp!==NA);
-  const sts=['EM MANUTENÇÃO','PAUSADO','AGUARDANDO PEÇA'];
-  mk('cEqCarga',{type:'bar',data:{labels:ca.map(r=>r.resp),datasets:sts.map(s=>({label:s,data:ca.map(r=>openI.filter(i=>i.resp===r.resp&&i.status===s).length),backgroundColor:ST_OPEN_COLOR[s],borderRadius:2}))},options:opts({stack:true,horizontal:true,legend:true,onClick:cf('resp')})});
+  const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
+  const tp=[];secs.forEach(s=>tp.push(...doSetor(s).sort((a,b)=>b.conc-a.conc).slice(0,3)));
+  const A=itemsBase('resp');
+  mk('cEqEvol',{type:'line',data:{labels,datasets:tp.map((r,j)=>({label:`${short(r.resp)} · ${secAbrev(r.setor)}`,data:series(A.filter(i=>i.resp===r.resp&&i.cls==='CONCLUIDO'),i=>i.fimEf,ks,g),borderColor:PAL[j%PAL.length],backgroundColor:PAL[j%PAL.length],borderDash:N(r.setor)==='MECANICA'?[6,3]:[],tension:.25,pointRadius:ks.length>60?0:2}))},options:opts({legend:true})});
   $('#eqDetHint').style.display=sel?'none':'';
   $('#tbEqDet').style.display=sel?'':'none';
   if(sel){
@@ -878,7 +939,8 @@ R.equip=()=>{
   mk('cDestTipo',{type:'bar',data:{labels:t10.map(x=>x[0]),datasets:EXIT_ORDER.map(c=>({label:CLS[c].n,data:t10.map(x=>x[1]?x[2].filter(i=>i.cls===c).length/x[1]*100:0),backgroundColor:CLS[c].c}))},options:opts({stack:true,horizontal:true,legend:true,pct:true,max:100})});
   const rr=[...pats.entries()].map(([p,l])=>[p,l.length]).sort((a,b)=>b[1]-a[1]).slice(0,12).reverse();
   mk('cReinc',{type:'bar',data:{labels:rr.map(x=>x[0]),datasets:[{label:'Passagens',data:rr.map(x=>x[1]),backgroundColor:'#f59e0b',borderRadius:3}]},options:opts({horizontal:true})});
-  const ob=topN(groupBy(itemsIn('obra'),i=>i.os.obra),10,l=>l.length).reverse();
+  const ob=topN(groupBy(itemsIn('obra').filter(i=>i.os.obra!==SEM),i=>i.os.obra),10,l=>l.length).reverse();
+  noteObra('hObraEq',itemsIn('obra').filter(i=>i.os.obra===SEM).length,'equipamentos');
   mk('cEqObra',{type:'bar',data:{labels:ob.map(x=>x[0]),datasets:[{label:'Equipamentos',data:ob.map(x=>x[1]),backgroundColor:ob.map(x=>dim('obra',x[0],'#0891b2')),borderRadius:3}]},options:opts({horizontal:true,onClick:cf('obra')})});
   const rows=[...pats.entries()].map(([p,l])=>{const s=l.slice().sort((a,b)=>(b.fimEf||0)-(a.fimEf||0));return {pat:p,desc:s[0].desc,tipo:s[0].tipo,n:l.length,hist:(DATA.byPat.get(p)||[]).length,custo:sum(l,i=>i.valor),ult:s[0]};});
   tbl('tbEquip',[
@@ -909,7 +971,7 @@ R.custos=()=>{
   mk('cCustoSetor',{type:'doughnut',data:{labels:sg.map(x=>x[0]),datasets:[{data:sg.map(x=>+x[1].toFixed(2)),backgroundColor:sg.map((x,j)=>dim('setor',x[0],PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('setor'))});
   const bar=(id,key,skip,n,filt)=>{const X=itemsIn(skip).filter(filt||(()=>true)),tg=topN(groupBy(X,key),n,l=>sum(l,i=>i.valor)).reverse();
     mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'Gasto',data:tg.map(x=>+x[1].toFixed(2)),backgroundColor:tg.map(x=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:true,money:true,onClick:cf(skip)})});};
-  bar('cCustoResp',i=>i.resp,'resp',10,i=>i.resp!==NA);bar('cCustoTipo',i=>i.tipo,'tipo',10);bar('cCustoObra',i=>i.os.obra,'obra',10);
+  bar('cCustoResp',i=>i.resp,'resp',10,i=>i.resp!==NA);bar('cCustoTipo',i=>i.tipo,'tipo',10);bar('cCustoObra',i=>i.os.obra,'obra',10,i=>i.os.obra!==SEM);noteObra('hObraCustos',itemsIn('obra').filter(i=>i.os.obra===SEM).length,'equipamentos');
   const fx=[[0,0,'R$ 0'],[0.01,100,'até 100'],[100.01,500,'100–500'],[500.01,1000,'500–1.000'],[1000.01,5000,'1.000–5.000'],[5000.01,1e12,'> 5.000']];
   mk('cCustoFaixa',{type:'bar',data:{labels:fx.map(f=>f[2]),datasets:[{label:'Equipamentos',data:fx.map(f=>P.filter(i=>i.valor>=f[0]&&i.valor<=f[1]).length),backgroundColor:'#0891b2',borderRadius:3}]},options:opts()});
   tbl('tbCaros',COLS_ITEM,P.filter(i=>i.valor>0),{sort:9,dir:-1,onRow:showItem,size:10});
@@ -950,9 +1012,9 @@ R.os=()=>{
   mk('cOsFluxo',{type:'bar',data:{labels,datasets:[{label:'Abertas',data:series(XA,x=>x.o.ab,ks,g),backgroundColor:'#2563eb',borderRadius:3},{label:'Liberadas',data:series(XA,x=>x.lib?x.fd:null,ks,g),backgroundColor:'#16a34a',borderRadius:3}]},options:opts({legend:true})});
   const pz=['Liberada no prazo','Liberada com atraso','Aberta no prazo','Aberta atrasada','Sem previsão'],pcol=['#16a34a','#dc2626','#2563eb','#f59e0b','#94a3b8'];
   mk('cOsPrazo',{type:'doughnut',data:{labels:pz,datasets:[{data:pz.map(p=>X.filter(x=>x.prazo===p).length),backgroundColor:pcol,borderWidth:0}]},options:dopts()});
-  const bar=(id,key,skip,nn,horiz)=>{const tg=topN(groupBy(osIn(skip),key),nn,l=>l.length);if(horiz)tg.reverse();
+  const bar=(id,key,skip,nn,horiz,flt)=>{const tg=topN(groupBy(osIn(skip).filter(flt||(()=>true)),key),nn,l=>l.length);if(horiz)tg.reverse();
     mk(id,{type:'bar',data:{labels:tg.map(x=>x[0]),datasets:[{label:'OS',data:tg.map(x=>x[1]),backgroundColor:tg.map(x=>dim(skip,x[0],'#2563eb')),borderRadius:3}]},options:opts({horizontal:horiz,onClick:cf(skip)})});};
-  bar('cOsPrio',o=>o.prio,'prio',6,false);bar('cOsSol',o=>o.sol,'sol',10,true);bar('cOsObra',o=>o.obra,'obra',10,true);
+  bar('cOsPrio',o=>o.prio,'prio',6,false);bar('cOsSol',o=>o.sol,'sol',10,true);bar('cOsObra',o=>o.obra,'obra',10,true,o=>o.obra!==SEM);noteObra('hObraOs',osIn('obra').filter(o=>o.obra===SEM).length,'OS');
   const mg=topN(groupBy(osIn('man'),o=>o.man),6,l=>l.length);
   mk('cOsMan',{type:'doughnut',data:{labels:mg.map(x=>x[0]),datasets:[{data:mg.map(x=>x[1]),backgroundColor:mg.map((x,j)=>dim('man',x[0],PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('man'))});
   const sts=uniq(X.map(x=>x.o.status)).sort((a,b)=>OS_ORDER.indexOf(a)-OS_ORDER.indexOf(b));

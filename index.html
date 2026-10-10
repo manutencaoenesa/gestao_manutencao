@@ -159,7 +159,6 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
   <div class="card c6"><h3>Equipamentos por colaborador e destino <small>no período, agrupado por setor — clique para filtrar</small></h3><div class="cv tall"><canvas id="cEqResp"></canvas></div></div>
   <div class="card c6"><h3>Produtividade nos dias trabalhados <small>média de concluídos por dia com entrega — comparar só dentro do mesmo setor</small></h3><div class="cv tall"><canvas id="cEqPdu"></canvas></div></div>
   <div class="card c12"><h3>Mapa de produção <small>conclusões por colaborador em cada período — a intensidade da cor é calculada separadamente em cada setor</small></h3><div class="heat" id="heatBox"></div></div>
-  <div class="card c12"><h3>Evolução das conclusões <small>3 principais de cada setor</small></h3><div class="cv tall"><canvas id="cEqEvol"></canvas></div></div>
   <div class="card c12"><h3 id="eqDetTitulo">Equipamentos dos colaboradores selecionados</h3><div id="eqDetHint" class="hint">Marque um ou mais colaboradores (na tabela acima ou no filtro “Responsável”) para ver aqui cada equipamento deles que deu saída da oficina no período (concluído, externo, sucata ou cancelado — o status aparece na tabela).</div><div id="tbEqDet"></div></div>
  </div>
 </section>
@@ -830,10 +829,6 @@ R.equipe=()=>{
   const pd=[];secs.forEach(s=>pd.push(...doSetor(s).sort((a,b)=>b.pda-a.pda).slice(0,8)));
   mk('cEqPdu',{type:'bar',data:{labels:pd.map(secLabel),datasets:secs.map((s,j)=>({label:secNome(s),data:pd.map(r=>r.setor===s?+r.pda.toFixed(1):null),backgroundColor:pd.map(r=>dim('resp',r.resp,secColor(s,j))),borderRadius:3}))},options:opts({stack:true,horizontal:true,dec:true,legend:true,onClick:cf('resp',unLabel)})});
   set('heatBox',heatHtml(RS));
-  const g=gran(),ks=buckets(S.from,S.to,g),labels=ks.map(k=>bLabel(k,g));
-  const tp=[];secs.forEach(s=>tp.push(...doSetor(s).sort((a,b)=>b.conc-a.conc).slice(0,3)));
-  const A=itemsBase('resp');
-  mk('cEqEvol',{type:'line',data:{labels,datasets:tp.map((r,j)=>({label:`${short(r.resp)} · ${secAbrev(r.setor)}`,data:series(A.filter(i=>i.resp===r.resp&&i.cls==='CONCLUIDO'),i=>i.fimEf,ks,g),borderColor:PAL[j%PAL.length],backgroundColor:PAL[j%PAL.length],borderDash:N(r.setor)==='MECANICA'?[6,3]:[],tension:.25,pointRadius:ks.length>60?0:2}))},options:opts({legend:true})});
   $('#eqDetHint').style.display=sel?'none':'';
   $('#tbEqDet').style.display=sel?'':'none';
   if(sel){

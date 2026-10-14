@@ -1017,7 +1017,9 @@ R.os=()=>{
   const OSet=uniq(osIn('setor').map(o=>o.setor));
   mk('cOsSetor',{type:'doughnut',data:{labels:OSet,datasets:[{data:OSet.map(s=>osIn('setor').filter(o=>o.setor===s).length),backgroundColor:OSet.map((s,j)=>dim('setor',s,PAL[j%PAL.length])),borderWidth:0}]},options:dopts(cf('setor'))});
   tbl('tbOs',[
-    {t:'OS',v:x=>/^\d+$/.test(x.o.id)?+x.o.id:x.o.id,f:x=>`<b>${esc(x.o.id)}</b>`},{t:'Abertura',v:x=>x.o.ab,d:1},{t:'Previsão',v:x=>x.o.prev,d:1},{t:'Liberação',v:x=>x.fd,d:1},
+    {t:'OS',v:x=>/^\d+$/.test(x.o.id)?+x.o.id:x.o.id,f:x=>`<b>${esc(x.o.id)}</b>`},{t:'Abertura',v:x=>x.o.ab,d:1},
+    {t:'Descrição',v:x=>x.o.desc.replace(/\s+/g,' ').trim(),f:x=>`<div class="clip" style="max-width:440px" title="${esc(x.o.desc)}">${esc(x.o.desc.replace(/\s+/g,' ').trim())||'—'}</div>`},
+    {t:'Previsão',v:x=>x.o.prev,d:1},{t:'Liberação',v:x=>x.fd,d:1},
     {t:'Situação',v:x=>x.o.status,f:x=>`<span class="pill">${esc(x.o.status)}</span>`},
     {t:'Prazo',v:x=>x.prazo,f:x=>`<span class="pill ${x.prazo.includes('atras')?'late':x.prazo.includes('no prazo')?'ok':''}">${esc(x.prazo)}</span>`},
     {t:'Prioridade',v:x=>x.o.prio},{t:'Setor',v:x=>x.o.setor},{t:'Solicitante',v:x=>x.o.sol},{t:'Obra',v:x=>x.o.obra},{t:'Manutenção',v:x=>x.o.man},

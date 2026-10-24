@@ -159,6 +159,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
   <div class="card c6"><h3>Equipamentos por colaborador e destino <small>no período, agrupado por setor — clique para filtrar</small></h3><div class="cv tall"><canvas id="cEqResp"></canvas></div></div>
   <div class="card c6"><h3>Produtividade nos dias trabalhados <small>média de concluídos por dia com entrega — comparar só dentro do mesmo setor</small></h3><div class="cv tall"><canvas id="cEqPdu"></canvas></div></div>
   <div class="card c12"><h3>Mapa de produção <small>conclusões por colaborador em cada período — a intensidade da cor é calculada separadamente em cada setor</small></h3><div class="heat" id="heatBox"></div></div>
+  <div class="card c12" id="cardAtiv" style="display:none"><h3>Atividades fora da produção <small>dias em que o colaborador esteve em outra atividade ou ausente — saem dos dias disponíveis</small></h3><p class="hint" id="hAtiv"></p><div class="cv tall" id="cvAtiv"><canvas id="cAtiv"></canvas></div><div id="tbAtiv"></div></div>
   <div class="card c12"><h3 id="eqDetTitulo">Equipamentos dos colaboradores selecionados</h3><div id="eqDetHint" class="hint">Marque um ou mais colaboradores (na tabela acima ou no filtro “Responsável”) para ver aqui cada equipamento deles que deu saída da oficina no período (concluído, externo, sucata ou cancelado — o status aparece na tabela).</div><div id="tbEqDet"></div></div>
  </div>
 </section>
@@ -167,7 +168,7 @@ footer{color:var(--mut);font-size:12px;text-align:center;padding:20px}
 <section class="tab" id="t-geral">
  <div class="kpis" id="kGeral"></div>
  <div class="grid">
-  <div class="card c12"><h3>Radar do gestor <small>alertas automáticos — não dependem do período selecionado</small></h3><ul class="ins-list" id="insights"></ul></div>
+  <div class="card c12"><h3>Radar do gestor <small>alertas automáticos — “Queda de produção” e “Destaque” seguem o período selecionado; os demais não</small></h3><ul class="ins-list" id="insights"></ul></div>
   <div class="card c12"><h3>Entradas e saídas — semana a semana / mês a mês <span class="seg"><button data-evo="week">Semanas</button><button data-evo="month">Meses</button></span></h3><p class="hint">Janela fixa — 16 semanas ou 12 meses — independente das datas escolhidas no topo; respeita os demais filtros. O último período ainda está em andamento.</p><div class="cv tall"><canvas id="cEvoGeral"></canvas></div></div>
   <div class="card c8"><h3>Entradas × saídas da oficina e estoque <small>mostra se a oficina esvazia porque entra menos ou porque sai mais</small></h3><div class="cv tall"><canvas id="cFlow"></canvas></div></div>
   <div class="card c4"><h3>Destino dos equipamentos <small>clique para filtrar</small></h3><div class="cv tall"><canvas id="cStatus"></canvas></div></div>
@@ -372,6 +373,26 @@ function build(raw){
   });
   const sc=new Map();items.forEach(i=>{if(i.resp===NA||!i.setor||i.setor==='—')return;let m=sc.get(i.resp);if(!m)sc.set(i.resp,m=new Map());m.set(i.setor,(m.get(i.setor)||0)+1);});
   const secMap=new Map([...sc].map(([r,m])=>[r,[...m.entries()].sort((a,b)=>b[1]-a[1])[0][0]]));
+  /* atividades fora da produção (aba opcional) */
+  const ativ=[],ativInv=[],ativDay=new Map();
+  (raw.atividades||[]).forEach(r=>{
+    const resp=S0(r.RESPONSAVEL).toUpperCase().replace(/\s+/g,' '),tipo=S0(r.TIPO).toUpperCase().replace(/\s+/g,' '),data=pdate(r.DATA),per=S0(r.PERIODO).toUpperCase();
+    if(!resp&&!tipo&&data==null&&!per)return;
+    const pn=N(per),parts=tipo.split(/\s+-\s+/);
+    const a={id:S0(r.ID_ATIVIDADE),resp:resp||NA,tipo:tipo||'—',grupo:(parts[0]||'—').trim(),det:parts.slice(1).join(' - '),data,per:per||'—',
+      frac:/MANHA|TARDE/.test(pn)?0.5:1,w:0};
+    a.aus=/^AUSENCIA/.test(N(a.grupo));
+    if(data==null||!resp||!tipo||!/^(DIA INTEIRO|MANHA|TARDE)$/.test(pn))ativInv.push(a);
+    if(data==null||!resp||!tipo)return;
+    ativ.push(a);
+  });
+  ativ.forEach(a=>{let m=ativDay.get(a.resp);if(!m)ativDay.set(a.resp,m=new Map());let d=m.get(a.data);if(!d)m.set(a.data,d={f:0,a:0});if(a.aus)d.a+=a.frac;else d.f+=a.frac;});
+  const nomes=new Set(items.map(i=>i.resp)),fimDia=new Set(items.filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA).map(i=>i.resp+'|'+i.fimEf));
+  const ativDup=[],ativEnt=[],ativNome=[];
+  ativ.forEach(a=>{const d=ativDay.get(a.resp).get(a.data),t=d.f+d.a;a.w=a.frac/Math.max(1,t);
+    if(t>1.0001)ativDup.push(a);if(t>=1&&fimDia.has(a.resp+'|'+a.data))ativEnt.push(a);if(!nomes.has(a.resp))ativNome.push(a);});
+  ativDay.forEach(m=>m.forEach(d=>{const t=d.f+d.a;if(t>1){d.f/=t;d.a/=t;}}));
+  const ativMin=ativ.length?Math.min(...ativ.map(a=>a.data)):null;
   const ds=[];items.forEach(i=>{if(i.ent!=null)ds.push(i.ent);if(i.fimEf!=null)ds.push(i.fimEf);});osList.forEach(o=>{if(o.ab!=null)ds.push(o.ab);});
   const quality=[
     ['concSemResp','Concluído sem responsável','Entrega que não entra no desempenho de ninguém.'],
@@ -386,7 +407,13 @@ function build(raw){
     ['osAusente','OS não encontrada','ID_OS_REF não existe na aba ORDENS_SERVICO.'],
     ['futura','Data no futuro','Datas posteriores a amanhã.']
   ].map(([k,t,d])=>({k,t,d,items:Q[k]}));
-  return {os:osList,items,osMap,byOs,byPat,quality,secMap,min:ds.length?Math.min(...ds):today0(),max:ds.length?Math.max(...ds):today0()};
+  if(ativ.length||ativInv.length)[
+    ['ativInv','Atividade com dado inválido','Falta responsável, tipo ou data, ou o período não é DIA INTEIRO / MANHÃ / TARDE. Linhas sem data, responsável ou tipo são ignoradas.',ativInv],
+    ['ativNome','Atividade com nome que não aparece nas OS','O nome em RESPONSAVEL não bate com nenhum responsável dos equipamentos; o dia não será descontado de ninguém no ranking.',ativNome],
+    ['ativDup','Mais de um dia lançado no mesmo dia','A mesma pessoa tem lançamentos que somam mais de 1 dia na mesma data. O painel conta no máximo 1 dia.',ativDup],
+    ['ativEnt','Dia inteiro fora da produção com equipamento concluído','Há atividade (ou ausência) de dia inteiro numa data em que a pessoa também concluiu equipamento. Confira se o lançamento está certo.',ativEnt]
+  ].forEach(([k,t,d,it])=>quality.push({k,t,d,items:it,kind:'ativ'}));
+  return {os:osList,items,osMap,byOs,byPat,quality,secMap,ativ,ativDay,ativMin,min:ds.length?Math.min(...ds):today0(),max:ds.length?Math.max(...ds):today0()};
 }
 
 /* ====================== dados de demonstração ====================== */
@@ -460,7 +487,21 @@ function genDemo(){
       });
     }
   }
-  return {ok:true,ordens,itens};
+  const atividades=[],tpA=['ORGANIZAÇÃO - OFICINA','ORGANIZAÇÃO - ESTOQUE DE MANUTENÇÃO','SERVIÇO PREDIAL - ELETRICA','SERVIÇO PREDIAL - HIDRÁULICA','SERVIÇO EXTERNO - PARAIBUNA','SERVIÇO - ADMINISTRATIVO'];
+  let aId=0;const nomesA=[...new Set([...team['MECÂNICA'],...team['ELÉTRICA']])];
+  nomesA.forEach((n,k)=>{
+    const fer=ad(hoje,-60-k*9);
+    for(let t=ad(hoje,-120);t<=hoje;t=ad(t,1)){
+      const wd=new Date(t).getDay();if(wd===0||wd===6)continue;
+      const u=rnd();let tipo=null,per='DIA INTEIRO';
+      if(t>=fer&&t<ad(fer,12)&&wd!==0)tipo='AUSÊNCIA - FÉRIAS';
+      else if(u<0.06)tipo=pick(tpA);
+      else if(u<0.085){tipo=pick(tpA);per=rnd()<0.5?'MANHÃ':'TARDE';}
+      else if(u<0.095)tipo='AUSÊNCIA - JUSTIFICADA';
+      if(tipo)atividades.push({ID_ATIVIDADE:'a'+(++aId).toString(16).padStart(6,'0'),RESPONSAVEL:n,TIPO:tipo,DATA:toISO(t),PERIODO:per});
+    }
+  });
+  return {ok:true,ordens,itens,atividades};
 }
 
 /* ====================== filtros e derivados ====================== */
@@ -494,6 +535,7 @@ function stockAt(list,t){let n=0;for(const i of list){if(i.ent!=null&&i.ent<=t&&
 function stockSeries(list,ks,g){return ks.map(k=>{const e=Math.min(ad(bNext(k,g),-1),S.to);return stockAt(list,e);});}
 function groupBy(list,kf){const m=new Map();list.forEach(i=>{const k=kf(i);(m.get(k)||m.set(k,[]).get(k)).push(i);});return m;}
 function diasUteis(a,b){let n=0;for(let t=a,c=0;t<=b&&c<4000;t=ad(t,1),c++){const w=new Date(t).getDay();if(w>0&&w<6)n++;}return n;}
+function ativDias(resp,a,b){let f=0,au=0;const m=DATA.ativDay.get(resp);if(m)m.forEach((d,t)=>{if(t<a||t>b)return;const w=new Date(t).getDay();if(w===0||w===6)return;f+=d.f;au+=d.a;});return {f,a:au};}
 const lab=(k,v)=>k==='cls'?(CLS[v]?CLS[v].n:v):v;
 const short=n=>String(n).split(' ').filter(w=>!['DE','DA','DO','DAS','DOS','E'].includes(w)).slice(0,2).join(' ');
 
@@ -692,10 +734,13 @@ function insights(){
   const c14=ad(t,-14),c60=ad(t,-60);
   const conc=A.filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA);
   const antes=new Set(conc.filter(i=>i.fimEf>=c60&&i.fimEf<c14).map(i=>i.resp)),recentes=new Set(conc.filter(i=>i.fimEf>=c14).map(i=>i.resp));
-  const sem=[...antes].filter(r=>!recentes.has(r));
-  if(sem.length)out.push({t:'warn',h:'Sem conclusões nos últimos 14 dias',x:`${sem.slice(0,4).map(short).join(', ')}${sem.length>4?'…':''} entregaram nos 45 dias anteriores, mas nada nos últimos 14.`});
+  const semAll=[...antes].filter(r=>!recentes.has(r)),du14=Math.max(1,diasUteis(c14,t));
+  const fora14=r=>{if(!DATA.ativ.length)return false;const x=ativDias(r,c14,t);return x.f+x.a>=0.5*du14;};
+  const sem=semAll.filter(r=>!fora14(r)),semJ=semAll.filter(fora14);
+  if(sem.length)out.push({t:'warn',h:'Sem conclusões nos últimos 14 dias',x:`${sem.slice(0,4).map(short).join(', ')}${sem.length>4?'…':''} ${sem.length>1?'entregaram':'entregou'} nos 45 dias anteriores, mas nada nos últimos 14.`});
+  if(semJ.length)out.push({t:'info',h:'Sem conclusões, mas fora da produção',x:`${semJ.slice(0,4).map(short).join(', ')}${semJ.length>4?'…':''} não concluiu(ram) nos últimos 14 dias, mas esteve(estiveram) em atividade fora da produção ou ausente em metade ou mais dos dias úteis.`});
   const RS=respStats(),quedas=RS.filter(r=>r.delta!=null&&r.prev>=5&&r.delta<=-30).sort((a,b)=>a.delta-b.delta);
-  if(quedas.length)out.push({t:'warn',h:'Queda de produção no período',x:`${quedas.slice(0,3).map(r=>`${short(r.resp)} (${num(r.delta,0)}%)`).join(', ')} concluíram bem menos que no período anterior.`});
+  if(quedas.length)out.push({t:'warn',h:'Queda de produção no período',x:`${quedas.slice(0,3).map(r=>`${short(r.resp)} (${num(r.delta,0)}%${r.fora+r.aus>0?`; ${num(r.fora+r.aus,1)} dia(s) fora da produção/ausente`:''})`).join(', ')} concluíram bem menos que no período anterior.`});
   [...new Set(RS.filter(r=>r.conc>0).map(r=>r.setor))].sort(secCmp).forEach(sc=>{
     const l=RS.filter(r=>r.setor===sc&&r.conc>0).sort((a,b)=>b.conc-a.conc)[0];
     if(l)out.push({t:'ok',h:'Destaque '+secNome(sc),x:`${short(l.resp)} concluiu ${num(l.conc)} equipamento(s)${l.share!=null?` (${num(l.share,0)}% do setor)`:''}.`});});
@@ -715,10 +760,14 @@ function respStats(){
     s.custo+=i.valor;});
   PV.forEach(i=>{if(i.resp!==NA&&i.cls==='CONCLUIDO')g(i.resp).prev++;});
   A.forEach(i=>{if(emAndamento(i)&&i.resp!==NA)g(i.resp).and++;});
+  if(DATA.ativ.length)DATA.ativDay.forEach((mm,r)=>{
+    if(m.has(r)||!DATA.secMap.has(r)||(F.resp.size&&!F.resp.has(r))||(F.setor.size&&!F.setor.has(secOf(r))))return;
+    const x=ativDias(r,S.from,S.to);if(x.f+x.a>0)g(r);});
   const du=Math.max(1,diasUteis(S.from,S.to)),all=[...m.values()],comparavel=S.pf>=DATA.min;
   const tcSec=new Map();all.forEach(s=>{s.setor=secOf(s.resp);tcSec.set(s.setor,(tcSec.get(s.setor)||0)+s.conc);});
-  all.forEach(s=>Object.assign(s,{nd:s.dias.size,pda:s.dias.size?s.conc/s.dias.size:null,pdu:s.conc/du,
-    share:tcSec.get(s.setor)?s.conc/tcSec.get(s.setor)*100:null,delta:(comparavel&&s.prev)?(s.conc-s.prev)/s.prev*100:null,pos:null}));
+  all.forEach(s=>{const x=DATA.ativ.length?ativDias(s.resp,S.from,S.to):{f:0,a:0},disp=Math.max(0,du-x.f-x.a);
+    Object.assign(s,{nd:s.dias.size,pda:s.dias.size?s.conc/s.dias.size:null,pdu:s.conc/du,fora:x.f,aus:x.a,disp,pdd:disp>0?s.conc/disp:null,
+    share:tcSec.get(s.setor)?s.conc/tcSec.get(s.setor)*100:null,delta:(comparavel&&s.prev)?(s.conc-s.prev)/s.prev*100:null,pos:null});});
   groupBy(all.filter(s=>s.conc>0),s=>s.setor).forEach(l=>l.sort((a,b)=>b.conc-a.conc).forEach((s,i)=>{s.pos=i+1;}));
   return all;
 }
@@ -791,9 +840,33 @@ function evoEquipe(){
     :'';
 }
 
+const AG_COR={'ORGANIZAÇÃO':'#0891b2','SERVIÇO':'#7c3aed','SERVIÇO EXTERNO':'#f59e0b','SERVIÇO PREDIAL':'#2563eb','AUSÊNCIA':'#94a3b8'};
+const COLS_ATIV=[
+  {t:'Data',v:a=>a.data,d:1},{t:'Colaborador',v:a=>a.resp,f:a=>`<b>${esc(a.resp)}</b>`},{t:'Setor',v:a=>secNome(secOf(a.resp))},
+  {t:'Grupo',v:a=>a.grupo},{t:'Detalhe',v:a=>a.det},{t:'Período',v:a=>a.per}
+];
+function ativCard(){
+  const card=$('#cardAtiv');if(!card)return;
+  if(!DATA.ativ.length){card.style.display='none';return;}
+  card.style.display='';
+  const rows=DATA.ativ.filter(a=>inR(a.data,S.from,S.to)&&(!F.resp.size||F.resp.has(a.resp))&&(!F.setor.size||F.setor.has(secOf(a.resp))));
+  const wk=rows.filter(a=>{const w=new Date(a.data).getDay();return w>0&&w<6;});
+  const per=new Map();wk.forEach(a=>{let m=per.get(a.resp);if(!m)per.set(a.resp,m=new Map());m.set(a.grupo,(m.get(a.grupo)||0)+a.w);});
+  const names=[...per.keys()].sort((x,y)=>secCmp(secOf(x),secOf(y))||sum([...per.get(y).values()])-sum([...per.get(x).values()]));
+  const grupos=[...new Set(wk.map(a=>a.grupo))].sort((x,y)=>(Object.keys(AG_COR).indexOf(x)+1||99)-(Object.keys(AG_COR).indexOf(y)+1||99)||x.localeCompare(y,'pt-BR'));
+  const aviso=S.from<DATA.ativMin?` Os lançamentos começam em ${fdate(DATA.ativMin)}; os dias anteriores sem registro contam como disponíveis.`:'';
+  $('#hAtiv').textContent=(names.length
+    ?`Colunas = dias úteis de cada colaborador em atividades fora da produção e ausências no período (meio período = 0,5). Esses dias saem dos “dias disponíveis” usados na média por dia disponível do ranking.`
+    :'Nenhuma atividade registrada neste período.')+aviso;
+  $('#cvAtiv').style.display=names.length?'':'none';
+  if(names.length)mk('cAtiv',{type:'bar',data:{labels:names.map(r=>secLabel({resp:r,setor:secOf(r)})),
+    datasets:grupos.map((g,j)=>({label:g,data:names.map(r=>{const v=per.get(r).get(g);return v?+v.toFixed(1):null;}),backgroundColor:names.map(r=>dim('resp',r,AG_COR[g]||PAL[(j+4)%PAL.length])),borderRadius:2}))},
+    options:opts({stack:true,horizontal:true,dec:true,legend:true,onClick:cf('resp',unLabel)})});
+  tbl('tbAtiv',COLS_ATIV,rows,{sort:0,dir:-1,size:10});
+}
 const R={};
 R.equipe=()=>{
-  const RS=respStats(),P=itemsIn('resp'),sel=F.resp.size;
+  const RS=respStats(),P=itemsIn('resp'),sel=F.resp.size,HA=DATA.ativ.length>0;
   const base=RS.filter(r=>r.tot>0),secs=[...new Set(base.map(r=>r.setor))].filter(x=>x!=='—').sort(secCmp);
   const conc=sum(base,r=>r.conc),concV=itemsIn('resp',S.pf,S.pt).filter(i=>i.cls==='CONCLUIDO'&&i.resp!==NA).length;
   const exits=P.filter(i=>i.resp!==NA).length;
@@ -819,16 +892,18 @@ R.equipe=()=>{
     {t:'Concluídos',v:r=>r.conc,n:1,cls:'num',f:r=>`<b>${num(r.conc)}</b>`},
     {t:'Var. vs anterior',v:r=>r.delta,n:1,dec:0,cls:'num',f:r=>r.delta==null?'—':`<span style="color:${r.delta>=0?'var(--ok)':'var(--bad)'}">${r.delta>0?'+':''}${num(r.delta,0)}%</span>`},
     {t:'% do setor',v:r=>r.share,n:1,dec:0,cls:'num',f:r=>r.share==null?'—':num(r.share,0)+'%'},
-    {t:'Dias com entrega',v:r=>r.nd,n:1,cls:'num'},{t:'Média/dia com entrega',v:r=>r.pda,n:1,dec:1,cls:'num'},{t:'Média/dia útil',v:r=>r.pdu,n:1,dec:2,cls:'num'},
+    {t:'Dias com entrega',v:r=>r.nd,n:1,cls:'num'},{t:'Média/dia com entrega',v:r=>r.pda,n:1,dec:1,cls:'num'},...(HA?[{t:'Fora da produção (dias)',v:r=>r.fora,n:1,dec:1,cls:'num'},{t:'Ausências (dias)',v:r=>r.aus,n:1,dec:1,cls:'num'},{t:'Dias disponíveis',v:r=>r.disp,n:1,dec:1,cls:'num'}]:[]),
+    {t:HA?'Média/dia disponível':'Média/dia útil',v:r=>HA?r.pdd:r.pdu,n:1,dec:2,cls:'num'},
     {t:'Externos',v:r=>r.ext,n:1,cls:'num'},{t:'Sucata',v:r=>r.suc,n:1,cls:'num'},{t:'Cancelados',v:r=>r.can,n:1,cls:'num'},
     {t:'Em andamento agora',v:r=>r.and,n:1,cls:'num'},{t:'Gasto em peças',v:r=>r.custo,m:1,cls:'num'}
-  ],RS.filter(r=>r.tot>0||r.and>0),{sort:3,dir:-1,size:12,onRow:r=>toggle('resp',r.resp),sel:r=>F.resp.has(r.resp)});
+  ],RS.filter(r=>r.tot>0||r.and>0||r.fora>0||r.aus>0),{sort:3,dir:-1,size:12,onRow:r=>toggle('resp',r.resp),sel:r=>F.resp.has(r.resp)});
   evoEquipe();
   const T=[];secs.forEach(s=>T.push(...base.filter(r=>r.setor===s).sort((a,b)=>b.tot-a.tot).slice(0,8)));
   mk('cEqResp',{type:'bar',data:{labels:T.map(secLabel),datasets:[['conc','CONCLUIDO'],['ext','EXTERNA'],['suc','SUCATA'],['can','CANCELADO']].map(([k,c])=>({label:CLS[c].n,data:T.map(r=>r[k]),backgroundColor:T.map(r=>dim('resp',r.resp,CLS[c].c)),borderRadius:2}))},options:opts({stack:true,horizontal:true,legend:true,onClick:cf('resp',unLabel)})});
   const pd=[];secs.forEach(s=>pd.push(...doSetor(s).sort((a,b)=>b.pda-a.pda).slice(0,8)));
   mk('cEqPdu',{type:'bar',data:{labels:pd.map(secLabel),datasets:secs.map((s,j)=>({label:secNome(s),data:pd.map(r=>r.setor===s?+r.pda.toFixed(1):null),backgroundColor:pd.map(r=>dim('resp',r.resp,secColor(s,j))),borderRadius:3}))},options:opts({stack:true,horizontal:true,dec:true,legend:true,onClick:cf('resp',unLabel)})});
   set('heatBox',heatHtml(RS));
+  ativCard();
   $('#eqDetHint').style.display=sel?'none':'';
   $('#tbEqDet').style.display=sel?'':'none';
   if(sel){
@@ -1053,7 +1128,7 @@ R.dados=()=>{
   set('qCards',DATA.quality.map(x=>`<div class="qcard ${x.items.length?'':'zero'} ${sel===x.k?'on':''}" data-q="${x.k}"><div class="v">${num(x.items.length)}</div><b>${esc(x.t)}</b><div class="s">${esc(x.d)}</div></div>`).join(''));
   const cur=DATA.quality.find(x=>x.k===sel);
   $('#tbQual').style.display=cur?'':'none';
-  if(cur)tbl('tbQual',COLS_ITEM,cur.items,{onRow:showItem,size:10});
+  if(cur)cur.kind==='ativ'?tbl('tbQual',COLS_ATIV,cur.items,{size:10}):tbl('tbQual',COLS_ITEM,cur.items,{onRow:showItem,size:10});
   const rows=S.A.filter(i=>inR(i.ent,S.from,S.to)||inR(i.fimEf,S.from,S.to));
   tbl('tbDados',COLS_ITEM.slice(0,10).concat([{t:'Atividade',v:i=>i.ativ,f:i=>`<div class="clip" title="${esc(i.ativ)}">${esc(i.ativ)}</div>`},COLS_ITEM[10]]),rows,{sort:8,dir:-1,onRow:showItem,size:20});
 };

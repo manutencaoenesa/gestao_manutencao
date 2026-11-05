@@ -315,7 +315,14 @@ const emAndamento=i=>i.cls==='ABERTO'&&N(i.status)!=='NAO INICIADO';
 function tipoDe(d){const w=N(d).replace(/[^A-Z0-9 ]/g,' ').trim().split(/\s+/)[0];return w||'OUTROS';}
 
 /* ====================== configuração e estado ====================== */
-const CFG={url:LS.get('mp_url',''),token:LS.get('mp_token',''),limite:+LS.get('mp_limite',15)||15,demo:LS.get('mp_demo','')==='1'};
+/* ===== ACESSO PÚBLICO =====
+   Cole entre as aspas a URL do Web App (a que termina em /exec). Com ela preenchida, qualquer pessoa que abrir
+   o painel já vê os dados reais, sem configurar nada, e o botão ⚙ Configurar some (para você, abra o painel com ?config no final do endereço).
+   Deixe vazio para voltar ao modo antigo (URL e senha digitadas no navegador). */
+const PUBLICO={url:'https://script.google.com/macros/s/AKfycbzxDE7DVuEE13szh-Vvk6BhVoeMkg8nfGfY-fkMGR7Q2WIbBUgV0pwPabNW7aFEggQJNQ/exec',token:'',limite:15};
+const PUB=!!PUBLICO.url;
+const CFG={url:PUB?PUBLICO.url:LS.get('mp_url',''),token:PUB?PUBLICO.token:LS.get('mp_token',''),
+  limite:(PUB?PUBLICO.limite:+LS.get('mp_limite',PUBLICO.limite))||PUBLICO.limite,demo:PUB?false:LS.get('mp_demo','')==='1'};
 const mkSets=()=>({setor:new Set(),resp:new Set(),cls:new Set(),tipo:new Set(),obra:new Set(),prio:new Set(),man:new Set(),sol:new Set()});
 const F=Object.assign(mkSets(),{from:null,to:null,preset:'30',gran:'auto'});
 const KEYS={setor:i=>i.setor,resp:i=>i.resp,cls:i=>i.cls,tipo:i=>i.tipo,prio:i=>i.os.prio,man:i=>i.os.man,sol:i=>i.os.sol,obra:i=>i.os.obra};
@@ -1208,7 +1215,8 @@ async function load(first){
       raw=j;SRC.demo=false;SRC.when=j.atualizado?new Date(j.atualizado):new Date();
     }catch(e){
       SRC.err=String(e.message||e).slice(0,80);
-      if(!DATA){raw=genDemo();SRC.demo=true;}
+      if(!DATA&&!PUB){raw=genDemo();SRC.demo=true;}
+      if(!DATA&&PUB)$('#foot').textContent='Não foi possível carregar os dados agora. Atualize a página em alguns instantes.';
     }
   }
   if(raw){try{DATA=build(raw);}catch(e){SRC.err='dados inesperados';console.error(e);}}
@@ -1244,6 +1252,7 @@ function init(){
   $('#btnRefresh').addEventListener('click',()=>load(false));
   $('#btnPrint').addEventListener('click',()=>window.print());
   $('#btnCfg').addEventListener('click',openCfg);
+  if(PUB&&!/[?&]config\b/.test(location.search))$('#btnCfg').style.display='none';
   $('#btnTheme').addEventListener('click',()=>{const d=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',d);LS.set('mp_theme',d);render();});
   $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
